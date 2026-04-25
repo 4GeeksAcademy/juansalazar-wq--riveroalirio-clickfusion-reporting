@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 from models import db
+from routes.auth import auth_bp
 import os
 
 load_dotenv()
@@ -19,6 +20,9 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 # Inicializar extensiones
 db.init_app(app)
 jwt = JWTManager(app)
+
+# Registrar blueprints
+app.register_blueprint(auth_bp)
 
 # Crear tablas
 with app.app_context():
