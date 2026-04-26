@@ -5,6 +5,7 @@ from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 from models import db
 from routes.auth import auth_bp
+from routes.clients import clients_bp
 import os
 
 load_dotenv()
@@ -23,6 +24,8 @@ jwt = JWTManager(app)
 
 # Registrar blueprints
 app.register_blueprint(auth_bp)
+
+app.register_blueprint(clients_bp)
 
 # Crear tablas
 with app.app_context():
