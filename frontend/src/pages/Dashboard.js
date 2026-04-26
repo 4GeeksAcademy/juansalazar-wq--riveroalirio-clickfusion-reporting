@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
 import { getClients, syncContacts } from '../services/api';
+import api from '../services/api';
+import ClientForm from './ClientForm';
 
 export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
 
   useEffect(() => {
     loadClients();
   }, []);
 
   const loadClients = async () => {
+    setLoading(true);
     try {
       const res = await getClients();
       setClients(res.data);
@@ -31,6 +36,22 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
     setSyncing(null);
   };
 
+  const handleDelete = async (clientId) => {
+    if (!window.confirm('¿Seguro que quieres eliminar este cliente?')) return;
+    try {
+      await api.delete(`/api/clients/${clientId}`);
+      loadClients();
+    } catch (err) {
+      alert('Error al eliminar');
+    }
+  };
+
+  const handleSave = () => {
+    setShowForm(false);
+    setEditingClient(null);
+    loadClients();
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -41,7 +62,14 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
         </div>
       </div>
 
-      <h2 style={styles.sectionTitle}>Mis Clientes</h2>
+      <div style={styles.sectionHeader}>
+        <h2 style={styles.sectionTitle}>Mis Clientes</h2>
+        {user.role === 'admin' && (
+          <button style={styles.addBtn} onClick={() => setShowForm(true)}>
+            + Nuevo Cliente
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <p style={styles.loading}>Cargando clientes...</p>
@@ -66,12 +94,36 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
                   onClick={() => handleSync(client.id)}
                   disabled={syncing === client.id}
                 >
-                  {syncing === client.id ? 'Sincronizando...' : '🔄 Sync'}
+                  {syncing === client.id ? '...' : '🔄'}
                 </button>
+                {user.role === 'admin' && (
+                  <>
+                    <button
+                      style={styles.editBtn}
+                      onClick={() => { setEditingClient(client); setShowForm(true); }}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      style={styles.deleteBtn}
+                      onClick={() => handleDelete(client.id)}
+                    >
+                      🗑️
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {showForm && (
+        <ClientForm
+          client={editingClient}
+          onSave={handleSave}
+          onCancel={() => { setShowForm(false); setEditingClient(null); }}
+        />
       )}
     </div>
   );
@@ -84,7 +136,9 @@ const styles = {
   userInfo: { display: 'flex', alignItems: 'center', gap: '16px' },
   userName: { color: '#94a3b8' },
   logoutBtn: { padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  sectionTitle: { color: '#f8fafc', marginBottom: '24px' },
+  sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
+  sectionTitle: { color: '#f8fafc', margin: 0 },
+  addBtn: { padding: '10px 20px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
   loading: { color: '#94a3b8' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' },
   card: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155' },
@@ -93,5 +147,7 @@ const styles = {
   badge: { color: '#94a3b8', marginBottom: '16px' },
   actions: { display: 'flex', gap: '8px' },
   reportBtn: { flex: 1, padding: '10px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  syncBtn: { padding: '10px 16px', backgroundColor: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+  syncBtn: { padding: '10px 12px', backgroundColor: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+  editBtn: { padding: '10px 12px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+  deleteBtn: { padding: '10px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
 };
