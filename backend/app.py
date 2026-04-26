@@ -36,7 +36,8 @@ app.register_blueprint(reports_bp)
 
 # Crear tablas
 with app.app_context():
-    db.create_all()
+    from init_db import init_db
+    init_db()
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
