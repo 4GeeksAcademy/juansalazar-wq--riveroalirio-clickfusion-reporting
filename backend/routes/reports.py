@@ -60,8 +60,9 @@ def sync_contacts(client_id):
                 db.session.add(new_contact)
                 saved += 1
 
-        # Guardar lote en BD
+        # Guardar lote y limpiar sesión para liberar memoria
         db.session.commit()
+        db.session.expire_all()
         print(f"Lote guardado — nuevos: {saved}, actualizados: {updated}")
 
         if not start_after:
