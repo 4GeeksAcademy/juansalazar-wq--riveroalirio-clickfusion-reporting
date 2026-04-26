@@ -18,6 +18,11 @@ def sync_contacts(client_id):
 
     client = Client.query.get_or_404(client_id)
 
+    # Parámetro año opcional — si no se manda, sync del año actual
+    year = request.args.get('year', datetime.utcnow().year, type=int)
+    date_start = f"{year}-01-01"
+    date_end = f"{year}-12-31"
+
     saved = 0
     updated = 0
     start_after = None
@@ -25,7 +30,7 @@ def sync_contacts(client_id):
 
     while True:
         contacts, start_after, start_after_id = get_contacts_page(
-            client.api_key, client.location_id, start_after, start_after_id
+            client.api_key, client.location_id, start_after, start_after_id, date_start, date_end
         )
 
         if not contacts:

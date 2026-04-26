@@ -2,8 +2,8 @@ import requests
 
 GHL_BASE_URL = "https://services.leadconnectorhq.com"
 
-def get_contacts_page(api_key, location_id, start_after=None, start_after_id=None):
-    """Trae UNA página de 100 contactos"""
+def get_contacts_page(api_key, location_id, start_after=None, start_after_id=None, date_start=None, date_end=None):
+    """Trae UNA página de 100 contactos filtrada por fecha"""
     url = f"{GHL_BASE_URL}/contacts/"
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -16,6 +16,10 @@ def get_contacts_page(api_key, location_id, start_after=None, start_after_id=Non
     if start_after:
         params["startAfter"] = start_after
         params["startAfterId"] = start_after_id
+    if date_start:
+        params["startDate"] = date_start
+    if date_end:
+        params["endDate"] = date_end
 
     response = requests.get(url, headers=headers, params=params)
     data = response.json()
