@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from models import db
 from routes.auth import auth_bp
 from routes.clients import clients_bp
+from routes.reports import reports_bp
 import os
 
 load_dotenv()
@@ -26,6 +27,7 @@ jwt = JWTManager(app)
 app.register_blueprint(auth_bp)
 
 app.register_blueprint(clients_bp)
+app.register_blueprint(reports_bp)
 
 # Crear tablas
 with app.app_context():
