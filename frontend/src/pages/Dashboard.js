@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getClients, syncContacts } from '../services/api';
 import api from '../services/api';
 import ClientForm from './ClientForm';
+import UserForm from './UserForm';
 
 export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [clients, setClients] = useState([]);
@@ -9,6 +10,8 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [syncing, setSyncing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     loadClients();
@@ -65,89 +68,93 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
       <div style={styles.sectionHeader}>
         <h2 style={styles.sectionTitle}>Mis Clientes</h2>
         {user.role === 'admin' && (
-          <button style={styles.addBtn} onClick={() => setShowForm(true)}>
-            + Nuevo Cliente
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button style={styles.addBtn} onClick={() => setShowForm(true)}>
+              + Nuevo Cliente
+            </button>
+            <button style={{ ...styles.addBtn, backgroundColor: '#8b5cf6' }} onClick={() => setShowUserForm(true)}>
+              + Nuevo Usuario
+            </button>
+          </div>
+        )}
+
+        {loading ? (
+          <p style={styles.loading}>Cargando clientes...</p>
+        ) : (
+          <div style={styles.grid}>
+            {clients.map(client => (
+              <div key={client.id} style={styles.card}>
+                <h3 style={styles.clientName}>{client.name}</h3>
+                <p style={styles.clientId}>ID: {client.location_id}</p>
+                <div style={styles.badge}>
+                  {client.active ? '🟢 Activo' : '🔴 Inactivo'}
+                </div>
+                <div style={styles.actions}>
+                  <button
+                    style={styles.reportBtn}
+                    onClick={() => onSelectClient(client)}
+                  >
+                    Ver Reporte
+                  </button>
+                  <button
+                    style={styles.syncBtn}
+                    onClick={() => handleSync(client.id)}
+                    disabled={syncing === client.id}
+                  >
+                    {syncing === client.id ? '...' : '🔄'}
+                  </button>
+                  {user.role === 'admin' && (
+                    <>
+                      <button
+                        style={styles.editBtn}
+                        onClick={() => { setEditingClient(client); setShowForm(true); }}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        style={styles.deleteBtn}
+                        onClick={() => handleDelete(client.id)}
+                      >
+                        🗑️
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showUserForm && (
+          <UserForm
+            clients={clients}
+            onSave={() => setShowUserForm(false)}
+            onCancel={() => setShowUserForm(false)}
+          />
         )}
       </div>
-
-      {loading ? (
-        <p style={styles.loading}>Cargando clientes...</p>
-      ) : (
-        <div style={styles.grid}>
-          {clients.map(client => (
-            <div key={client.id} style={styles.card}>
-              <h3 style={styles.clientName}>{client.name}</h3>
-              <p style={styles.clientId}>ID: {client.location_id}</p>
-              <div style={styles.badge}>
-                {client.active ? '🟢 Activo' : '🔴 Inactivo'}
-              </div>
-              <div style={styles.actions}>
-                <button
-                  style={styles.reportBtn}
-                  onClick={() => onSelectClient(client)}
-                >
-                  Ver Reporte
-                </button>
-                <button
-                  style={styles.syncBtn}
-                  onClick={() => handleSync(client.id)}
-                  disabled={syncing === client.id}
-                >
-                  {syncing === client.id ? '...' : '🔄'}
-                </button>
-                {user.role === 'admin' && (
-                  <>
-                    <button
-                      style={styles.editBtn}
-                      onClick={() => { setEditingClient(client); setShowForm(true); }}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      style={styles.deleteBtn}
-                      onClick={() => handleDelete(client.id)}
-                    >
-                      🗑️
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {showForm && (
-        <ClientForm
-          client={editingClient}
-          onSave={handleSave}
-          onCancel={() => { setShowForm(false); setEditingClient(null); }}
-        />
-      )}
-    </div>
-  );
+      );
 }
 
-const styles = {
-  container: { minHeight: '100vh', backgroundColor: '#0f172a', padding: '24px' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' },
-  title: { color: '#f8fafc', fontSize: '24px', margin: 0 },
-  userInfo: { display: 'flex', alignItems: 'center', gap: '16px' },
-  userName: { color: '#94a3b8' },
-  logoutBtn: { padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-  sectionTitle: { color: '#f8fafc', margin: 0 },
-  addBtn: { padding: '10px 20px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
-  loading: { color: '#94a3b8' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' },
-  card: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155' },
-  clientName: { color: '#f8fafc', margin: '0 0 8px', fontSize: '18px' },
-  clientId: { color: '#64748b', fontSize: '12px', margin: '0 0 12px' },
-  badge: { color: '#94a3b8', marginBottom: '16px' },
-  actions: { display: 'flex', gap: '8px' },
-  reportBtn: { flex: 1, padding: '10px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  syncBtn: { padding: '10px 12px', backgroundColor: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  editBtn: { padding: '10px 12px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  deleteBtn: { padding: '10px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+      const styles = {
+        container: {minHeight: '100vh', backgroundColor: '#0f172a', padding: '24px' },
+      header: {display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' },
+      title: {color: '#f8fafc', fontSize: '24px', margin: 0 },
+      userInfo: {display: 'flex', alignItems: 'center', gap: '16px' },
+      userName: {color: '#94a3b8' },
+      logoutBtn: {padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+      sectionHeader: {display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
+      sectionTitle: {color: '#f8fafc', margin: 0 },
+      addBtn: {padding: '10px 20px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
+      loading: {color: '#94a3b8' },
+      grid: {display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' },
+      card: {backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155' },
+      clientName: {color: '#f8fafc', margin: '0 0 8px', fontSize: '18px' },
+      clientId: {color: '#64748b', fontSize: '12px', margin: '0 0 12px' },
+      badge: {color: '#94a3b8', marginBottom: '16px' },
+      actions: {display: 'flex', gap: '8px' },
+      reportBtn: {flex: 1, padding: '10px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+      syncBtn: {padding: '10px 12px', backgroundColor: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+      editBtn: {padding: '10px 12px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+      deleteBtn: {padding: '10px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
 };

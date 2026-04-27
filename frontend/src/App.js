@@ -12,6 +12,10 @@ function App() {
 
   const handleLogin = (userData) => {
     setUser(userData);
+    // Si es viewer, cargamos su cliente automáticamente
+    if (userData.role === 'viewer' && userData.client_id) {
+      setSelectedClient({ id: userData.client_id });
+    }
   };
 
   const handleLogout = () => {
@@ -22,17 +26,17 @@ function App() {
   };
 
   if (!user) return <Login onLogin={handleLogin} />;
-  
+
   if (selectedClient) return (
-    <Report 
-      client={selectedClient} 
-      onBack={() => setSelectedClient(null)} 
+    <Report
+      client={selectedClient}
+      onBack={user.role === 'admin' ? () => setSelectedClient(null) : null}
     />
   );
 
   return (
-    <Dashboard 
-      user={user} 
+    <Dashboard
+      user={user}
       onLogout={handleLogout}
       onSelectClient={setSelectedClient}
     />

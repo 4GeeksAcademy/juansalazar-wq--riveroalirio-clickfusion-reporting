@@ -48,7 +48,9 @@ export default function Report({ client, onBack }) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <button style={styles.backBtn} onClick={onBack}>← Volver</button>
+        {onBack && (
+          <button style={styles.backBtn} onClick={onBack}>← Volver</button>
+        )}
         <h1 style={styles.title}>{client.name}</h1>
       </div>
 
