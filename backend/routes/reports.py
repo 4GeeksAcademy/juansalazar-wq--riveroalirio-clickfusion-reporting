@@ -220,4 +220,5 @@ def get_ad_spend(client_id):
         }), 200
 
     except Exception as e:
+        print("❌ ERROR AD SPEND:", str(e))
         return jsonify({"error": str(e)}), 500
