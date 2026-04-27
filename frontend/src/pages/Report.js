@@ -76,7 +76,7 @@ export default function Report({ client, onBack }) {
                   style: 'currency',
                   currency: 'COP',
                   maximumFractionDigits: 0
-                }).format(client.investment || 0)}
+                }).format(59000000)
               </p>
             </div>
 
@@ -88,7 +88,7 @@ export default function Report({ client, onBack }) {
                     style: 'currency',
                     currency: 'COP',
                     maximumFractionDigits: 0
-                  }).format((client.investment || 0) / metrics.total_leads)
+                  }).format(59000000 / metrics.total_leads)
                   : '$0'}
               </p>
             </div>
@@ -144,7 +144,7 @@ const styles = {
   dateInput: { padding: '10px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: '#1e293b', color: '#f8fafc' },
   filterBtn: { padding: '10px 20px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   loading: { color: '#94a3b8' },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '24px' },
   statCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155', textAlign: 'center' },
   statLabel: { color: '#64748b', margin: '0 0 8px', fontSize: '14px' },
   statValue: { color: '#f8fafc', margin: 0, fontSize: '32px', fontWeight: 'bold' },
