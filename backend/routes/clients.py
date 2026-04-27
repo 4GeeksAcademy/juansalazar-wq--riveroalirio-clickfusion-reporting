@@ -30,8 +30,9 @@ def get_clients():
         "id": c.id,
         "name": c.name,
         "location_id": c.location_id,
-        "active": c.active
-    } for c in clients]), 200
+        "active": c.active,
+        "last_sync": c.last_sync.isoformat() if c.last_sync else None
+} for c in clients]), 200
 
 
 # -------------------------
