@@ -185,11 +185,34 @@ def get_users():
     if admin.role != 'admin':
         return jsonify({"error": "No autorizado"}), 403
 
-    users = User.query.filter_by(role='viewer').all()
+    users = User.query.all()
 
     return jsonify([{
         "id": u.id,
         "name": u.name,
         "email": u.email,
+        "role": u.role,
         "client_id": u.client_id
     } for u in users]), 200
+
+
+# -------------------------
+# ELIMINAR USUARIO (solo admin)
+# -------------------------
+@auth_bp.route('/api/users/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(id):
+    current_user_id = get_jwt_identity()
+    admin = User.query.get(current_user_id)
+
+    if admin.role != 'admin':
+        return jsonify({"error": "No autorizado"}), 403
+
+    if str(id) == current_user_id:
+        return jsonify({"error": "No puedes eliminarte a ti mismo"}), 400
+
+    user = User.query.get_or_404(id)
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"message": "Usuario eliminado"}), 200

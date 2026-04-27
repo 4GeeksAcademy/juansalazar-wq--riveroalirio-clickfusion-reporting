@@ -38,4 +38,10 @@ export const forgotPassword = (email) =>
 export const resetPassword = (token, password) =>
   api.post('/api/auth/reset-password', { token, password });
 
+export const getUsers = () =>
+  api.get('/api/users');
+
+export const deleteUser = (id) =>
+  api.delete(`/api/users/${id}`);
+
 export default api;
