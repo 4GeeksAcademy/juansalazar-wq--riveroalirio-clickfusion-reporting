@@ -204,7 +204,8 @@ def get_ad_spend(client_id):
             start_date,
             end_date
         )
-
+        print("🔥 RAW FACEBOOK REPORTING:", data)
+        
         total_spend = 0
 
         if data and "data" in data:
