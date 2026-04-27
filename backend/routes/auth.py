@@ -133,7 +133,9 @@ def forgot_password():
              style="display:inline-block;margin:24px 0;padding:12px 24px;background:#3b82f6;color:white;border-radius:8px;text-decoration:none;font-weight:bold">
             Restablecer contraseña
           </a>
-          <p style="color:#94a3b8;font-size:13px">Si no solicitaste esto, ignora este mensaje.</p>
+                    <p style="color:#94a3b8;font-size:13px">Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
+          <p style="color:#3b82f6;font-size:13px;word-break:break-all">{reset_link}</p>
+          <p style="color:#94a3b8;font-size:13px;margin-top:16px">Si no solicitaste esto, ignora este mensaje.</p>
         </div>
         """
     })
