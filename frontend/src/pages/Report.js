@@ -27,6 +27,24 @@ export default function Report({ client, onBack }) {
     setLoading(false);
   };
 
+  const loadInvestment = async () => {
+  try {
+    const res = await fetch(
+      `${process.env.REACT_APP_API_URL}/api/reports/ad-spend/${client.id}?startDate=${startDate}&endDate=${endDate}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      }
+    );
+
+    const data = await res.json();
+    setInvestment(data.total_spend || 0);
+  } catch (err) {
+    console.error("Error trayendo inversión:", err);
+  }
+};
+
   const getDailyData = () => {
     if (!metrics) return [];
     return Object.entries(metrics.leads_by_day)
