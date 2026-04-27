@@ -90,7 +90,7 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
               <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
                 Última actualización: {
                   client.last_sync
-                    ? new Date(client.last_sync).toLocaleString('es-CO', {
+                    ? new Date(client.last_sync + 'Z').toLocaleString('es-CO', {
                       timeZone: 'America/Bogota',
                       day: '2-digit',
                       month: '2-digit',
