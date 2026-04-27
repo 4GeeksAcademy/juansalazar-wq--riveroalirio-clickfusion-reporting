@@ -73,6 +73,9 @@ def sync_contacts(client_id):
         if not start_after:
             break
 
+    client.last_sync = datetime.utcnow()
+    db.session.commit()
+    
     return jsonify({
         "message": "Sincronización completada",
         "new_contacts_saved": saved,
