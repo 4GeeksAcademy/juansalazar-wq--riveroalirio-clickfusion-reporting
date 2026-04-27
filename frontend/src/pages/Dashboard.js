@@ -1,9 +1,9 @@
-import UserList from './UserList';
 import { useState, useEffect } from 'react';
 import { getClients, syncContacts } from '../services/api';
 import api from '../services/api';
 import ClientForm from './ClientForm';
 import UserForm from './UserForm';
+import UserList from './UserList';
 
 export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [clients, setClients] = useState([]);
@@ -57,16 +57,6 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
     loadClients();
   };
 
-  {
-    showUserList && (
-      <UserList
-        clients={clients}
-        onClose={() => setShowUserList(false)}
-        onNewUser={() => { setShowUserList(false); setShowUserForm(true); }}
-      />
-    )
-  }
-
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -77,114 +67,117 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <button style={styles.addBtn} onClick={() => setShowForm(true)}>
-          + Nuevo Cliente
-        </button>
-        <button style={{ ...styles.addBtn, backgroundColor: '#8b5cf6' }} onClick={() => setShowUserList(true)}>
-          👥 Usuarios
-        </button>
-      </div>
+      <div style={styles.sectionHeader}>
+        <h2 style={styles.sectionTitle}>Mis Clientes</h2>
+        {user.role === 'admin' && (
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button style={styles.addBtn} onClick={() => setShowForm(true)}>
+              + Nuevo Cliente
+            </button>
+            <button style={{ ...styles.addBtn, backgroundColor: '#8b5cf6' }} onClick={() => setShowUserList(true)}>
+              👥 Usuarios
+            </button>
+          </div>
         )}
-    </div>
+      </div>
 
       {loading ? (
         <p style={styles.loading}>Cargando clientes...</p>
       ) : (
-      <div style={styles.grid}>
-        {clients.map(client => (
-          <div key={client.id} style={styles.card}>
-            <h3 style={styles.clientName}>{client.name}</h3>
+        <div style={styles.grid}>
+          {clients.map(client => (
+            <div key={client.id} style={styles.card}>
+              <h3 style={styles.clientName}>{client.name}</h3>
 
-            <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
-              Última actualización: {
-                client.last_sync
-                  ? new Date(client.last_sync + 'Z').toLocaleString('es-CO', {
-                    timeZone: 'America/Bogota',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                  : 'Sin sincronizar'
-              }
-            </p>
+              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
+                Última actualización: {
+                  client.last_sync
+                    ? new Date(client.last_sync + 'Z').toLocaleString('es-CO', {
+                      timeZone: 'America/Bogota',
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                    : 'Sin sincronizar'
+                }
+              </p>
 
-            <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
-              Inversión: {
-                new Intl.NumberFormat('es-CO', {
-                  style: 'currency',
-                  currency: 'COP'
-                }).format(client.investment ? client.investment : 0)
-              }
-            </p>
+              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
+                Inversión: {
+                  new Intl.NumberFormat('es-CO', {
+                    style: 'currency',
+                    currency: 'COP'
+                  }).format(client.investment ? client.investment : 0)
+                }
+              </p>
 
-            <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
-              CPL: Próximamente
-            </p>
+              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
+                CPL: Próximamente
+              </p>
 
-            <p style={styles.clientId}>ID: {client.location_id}</p>
-            <div style={styles.badge}>
-              {client.active ? '🟢 Activo' : '🔴 Inactivo'}
+              <p style={styles.clientId}>ID: {client.location_id}</p>
+              <div style={styles.badge}>
+                {client.active ? '🟢 Activo' : '🔴 Inactivo'}
+              </div>
+              <div style={styles.actions}>
+                <button style={styles.reportBtn} onClick={() => onSelectClient(client)}>
+                  Ver Reporte
+                </button>
+                <button
+                  style={styles.syncBtn}
+                  onClick={() => handleSync(client.id)}
+                  disabled={syncing === client.id}
+                >
+                  {syncing === client.id ? '...' : '🔄'}
+                </button>
+                {user.role === 'admin' && (
+                  <>
+                    <button
+                      style={styles.editBtn}
+                      onClick={() => { setEditingClient(client); setShowForm(true); }}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      style={styles.deleteBtn}
+                      onClick={() => handleDelete(client.id)}
+                    >
+                      🗑️
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-            <div style={styles.actions}>
-              <button
-                style={styles.reportBtn}
-                onClick={() => onSelectClient(client)}
-              >
-                Ver Reporte
-              </button>
-              <button
-                style={styles.syncBtn}
-                onClick={() => handleSync(client.id)}
-                disabled={syncing === client.id}
-              >
-                {syncing === client.id ? '...' : '🔄'}
-              </button>
-              {user.role === 'admin' && (
-                <>
-                  <button
-                    style={styles.editBtn}
-                    onClick={() => { setEditingClient(client); setShowForm(true); }}
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    style={styles.deleteBtn}
-                    onClick={() => handleDelete(client.id)}
-                  >
-                    🗑️
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    )
-  }
+          ))}
+        </div>
+      )}
 
-  {
-    showForm && (
-      <ClientForm
-        client={editingClient}
-        onSave={handleSave}
-        onCancel={() => { setShowForm(false); setEditingClient(null); }}
-      />
-    )
-  }
+      {showForm && (
+        <ClientForm
+          client={editingClient}
+          onSave={handleSave}
+          onCancel={() => { setShowForm(false); setEditingClient(null); }}
+        />
+      )}
 
-  {
-    showUserForm && (
-      <UserForm
-        clients={clients}
-        onSave={() => setShowUserForm(false)}
-        onCancel={() => setShowUserForm(false)}
-      />
-    )
-  }
-    </div >
+      {showUserForm && (
+        <UserForm
+          clients={clients}
+          onSave={() => setShowUserForm(false)}
+          onCancel={() => setShowUserForm(false)}
+        />
+      )}
+
+      {showUserList && (
+        <UserList
+          clients={clients}
+          onClose={() => setShowUserList(false)}
+          onNewUser={() => { setShowUserList(false); setShowUserForm(true); }}
+        />
+      )}
+    </div>
   );
 }
 
