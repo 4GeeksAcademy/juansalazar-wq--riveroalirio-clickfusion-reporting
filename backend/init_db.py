@@ -19,6 +19,10 @@ def init_db():
         db.session.execute(
             text("ALTER TABLE clients ADD COLUMN IF NOT EXISTS investment FLOAT DEFAULT 0")
         )
+        
+        db.session.execute(
+            text("ALTER TABLE clients ADD COLUMN IF NOT EXISTS reportei_project_id INTEGER")
+        )
 
         db.session.commit()
         print("✅ Columnas verificadas correctamente")
