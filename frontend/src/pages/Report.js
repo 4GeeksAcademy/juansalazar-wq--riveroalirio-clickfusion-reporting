@@ -70,6 +70,29 @@ export default function Report({ client, onBack }) {
               <p style={styles.statValue}>{metrics.total_leads.toLocaleString()}</p>
             </div>
             <div style={styles.statCard}>
+              <p style={styles.statLabel}>Inversión</p>
+              <p style={styles.statValue}>
+                {new Intl.NumberFormat('es-CO', {
+                  style: 'currency',
+                  currency: 'COP',
+                  maximumFractionDigits: 0
+                }).format(client.investment || 0)}
+              </p>
+            </div>
+
+            <div style={styles.statCard}>
+              <p style={styles.statLabel}>Costo por Lead</p>
+              <p style={styles.statValue}>
+                {metrics.total_leads > 0
+                  ? new Intl.NumberFormat('es-CO', {
+                    style: 'currency',
+                    currency: 'COP',
+                    maximumFractionDigits: 0
+                  }).format((client.investment || 0) / metrics.total_leads)
+                  : '$0'}
+              </p>
+            </div>
+            <div style={styles.statCard}>
               <p style={styles.statLabel}>Fuentes</p>
               <p style={styles.statValue}>{Object.keys(metrics.leads_by_source).length}</p>
             </div>
