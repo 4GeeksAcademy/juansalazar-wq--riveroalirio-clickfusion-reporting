@@ -9,10 +9,12 @@ export default function Report({ client, onBack }) {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('2026-01-01');
   const [endDate, setEndDate] = useState('2026-04-30');
+  const [investment, setInvestment] = useState(0);
 
   useEffect(() => {
     loadMetrics();
-  }, []);
+    loadInvestment();
+  }, [startDate, endDate]);
 
   const loadMetrics = async () => {
     setLoading(true);
