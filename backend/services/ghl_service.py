@@ -53,7 +53,7 @@ def get_facebook_ad_reporting(api_key, location_id, start_date, end_date):
         "groupBy": "month",
         "startDate": start_date,
         "endDate": end_date,
-        "type": "AD_MANAGER",
+        "type": "INTEGRATION",
         "fields": "impressions,clicks,spend,cpc,cost_per_conversion,conversions,cpm,reach,frequency"
     }
 
