@@ -5,50 +5,61 @@ from models import db, User
 
 auth_bp = Blueprint('auth', __name__)
 
+# -------------------------
+# REGISTER (opcional)
+# -------------------------
 @auth_bp.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json()
-    
+
     if User.query.filter_by(email=data['email']).first():
         return jsonify({"error": "El email ya existe"}), 400
-    
+
     hashed_password = generate_password_hash(data['password'])
-    
+
     new_user = User(
         name=data['name'],
         email=data['email'],
         password=hashed_password,
-        role=data.get('role', 'viewer')
+        role=data.get('role', 'viewer'),
+        client_id=data.get('client_id')  # 👈 importante
     )
-    
+
     db.session.add(new_user)
     db.session.commit()
-    
+
     return jsonify({"message": "Usuario creado exitosamente"}), 201
 
+
+# -------------------------
+# LOGIN
+# -------------------------
 @auth_bp.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
-    
+
     user = User.query.filter_by(email=data['email']).first()
-    
+
     if not user or not check_password_hash(user.password, data['password']):
         return jsonify({"error": "Credenciales inválidas"}), 401
-    
+
     access_token = create_access_token(identity=str(user.id))
-    
-   return jsonify({
-    "token": access_token,
-    "user": {
-        "id": user.id,
-        "name": user.name,
-        "email": user.email,
-        "role": user.role,
-        "client_id": user.client_id   # 👈 ESTA ES LA CLAVE
-    }
-}), 200
+
+    return jsonify({
+        "token": access_token,
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "client_id": user.client_id  # 🔥 CLAVE
+        }
+    }), 200
 
 
+# -------------------------
+# CREAR USUARIO VIEWER (solo admin)
+# -------------------------
 @auth_bp.route('/api/users', methods=['POST'])
 @jwt_required()
 def create_viewer():
@@ -68,14 +79,21 @@ def create_viewer():
         email=data['email'],
         password=generate_password_hash(data['password']),
         role='viewer',
-        client_id=data['client_id']
+        client_id=data.get('client_id')  # 🔥 CLAVE
     )
+
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({"message": "Usuario viewer creado", "id": new_user.id}), 201
+    return jsonify({
+        "message": "Usuario viewer creado",
+        "id": new_user.id
+    }), 201
 
 
+# -------------------------
+# LISTAR USERS (solo admin)
+# -------------------------
 @auth_bp.route('/api/users', methods=['GET'])
 @jwt_required()
 def get_users():
@@ -86,6 +104,7 @@ def get_users():
         return jsonify({"error": "No autorizado"}), 403
 
     users = User.query.filter_by(role='viewer').all()
+
     return jsonify([{
         "id": u.id,
         "name": u.name,
