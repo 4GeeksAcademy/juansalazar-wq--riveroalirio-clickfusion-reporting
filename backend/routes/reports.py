@@ -163,7 +163,7 @@ def get_metrics(client_id):
         "leads_by_day": daily_count
     }), 200
     
-    @reports_bp.route('/api/reports/ad-spend/<int:client_id>', methods=['GET'])
+@reports_bp.route('/api/reports/ad-spend/<int:client_id>', methods=['GET'])
 @jwt_required()
 def get_ad_spend(client_id):
     user_id = get_jwt_identity()
