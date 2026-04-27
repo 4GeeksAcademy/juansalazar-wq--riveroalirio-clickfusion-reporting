@@ -31,7 +31,8 @@ def get_clients():
         "name": c.name,
         "location_id": c.location_id,
         "active": c.active,
-        "last_sync": c.last_sync.isoformat() if c.last_sync else None
+        "last_sync": c.last_sync.isoformat() if c.last_sync else None,
+        "investment": c.investment,
 } for c in clients]), 200
 
 
