@@ -15,6 +15,10 @@ def init_db():
         db.session.execute(
             text("ALTER TABLE clients ADD COLUMN IF NOT EXISTS last_sync TIMESTAMP")
         )
+        
+        db.session.execute(
+            text("ALTER TABLE clients ADD COLUMN IF NOT EXISTS investment FLOAT DEFAULT 0")
+        )
 
         db.session.commit()
         print("✅ Columnas verificadas correctamente")
