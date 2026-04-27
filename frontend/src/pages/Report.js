@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getMetrics, getInvestment } from '../services/api';
 import { getMetrics } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
@@ -29,130 +30,129 @@ export default function Report({ client, onBack }) {
 
   const loadInvestment = async () => {
     try {
-      const res = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/reports/ad-spend/${client.id}?startDate=${startDate}&endDate=${endDate}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        }
-      );
-
-      const data = await res.json();
-      setInvestment(data.total_spend || 0);
+      const res = await getInvestment(client.id, startDate, endDate);
+      setInvestment(res.data.total_spend || 0);
     } catch (err) {
       console.error("Error trayendo inversión:", err);
+      setInvestment(0);
     }
   };
 
-  const getDailyData = () => {
-    if (!metrics) return [];
-    return Object.entries(metrics.leads_by_day)
-      .map(([date, count]) => ({ date: date.slice(5), leads: count }))
-      .slice(-30);
+  const data = await res.json();
+  setInvestment(data.total_spend || 0);
+} catch (err) {
+  console.error("Error trayendo inversión:", err);
+}
   };
 
-  const getSourceData = () => {
-    if (!metrics) return [];
-    const sources = Object.entries(metrics.leads_by_source)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8);
-    const total = sources.reduce((sum, [, v]) => sum + v, 0);
-    return sources.map(([name, value]) => ({
-      name: name.length > 20 ? name.slice(0, 20) + '...' : name,
-      value,
-      percent: ((value / total) * 100).toFixed(1)
-    }));
-  };
+const getDailyData = () => {
+  if (!metrics) return [];
+  return Object.entries(metrics.leads_by_day)
+    .map(([date, count]) => ({ date: date.slice(5), leads: count }))
+    .slice(-30);
+};
 
-  return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        {onBack && (
-          <button style={styles.backBtn} onClick={onBack}>← Volver</button>
-        )}
-        <h1 style={styles.title}>{client.name}</h1>
-      </div>
+const getSourceData = () => {
+  if (!metrics) return [];
+  const sources = Object.entries(metrics.leads_by_source)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+  const total = sources.reduce((sum, [, v]) => sum + v, 0);
+  return sources.map(([name, value]) => ({
+    name: name.length > 20 ? name.slice(0, 20) + '...' : name,
+    value,
+    percent: ((value / total) * 100).toFixed(1)
+  }));
+};
 
-      <div style={styles.filters}>
-        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={styles.dateInput} />
-        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={styles.dateInput} />
-        <button style={styles.filterBtn} onClick={loadMetrics}>Filtrar</button>
-      </div>
+return (
+  <div style={styles.container}>
+    <div style={styles.header}>
+      {onBack && (
+        <button style={styles.backBtn} onClick={onBack}>← Volver</button>
+      )}
+      <h1 style={styles.title}>{client.name}</h1>
+    </div>
 
-      {loading ? (
-        <p style={styles.loading}>Cargando métricas...</p>
-      ) : metrics ? (
-        <>
-          <div style={styles.statsGrid}>
-            <div style={styles.statCard}>
-              <p style={styles.statLabel}>Total Leads</p>
-              <p style={styles.statValue}>{metrics.total_leads.toLocaleString()}</p>
-            </div>
-            <div style={styles.statCard}>
-              <p style={styles.statLabel}>Inversión</p>
-              <p style={styles.statValue}>
-                {new Intl.NumberFormat('es-CO', {
+    <div style={styles.filters}>
+      <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={styles.dateInput} />
+      <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={styles.dateInput} />
+      <button style={styles.filterBtn} onClick={loadMetrics}>Filtrar</button>
+    </div>
+
+    {loading ? (
+      <p style={styles.loading}>Cargando métricas...</p>
+    ) : metrics ? (
+      <>
+        <div style={styles.statsGrid}>
+          <div style={styles.statCard}>
+            <p style={styles.statLabel}>Total Leads</p>
+            <p style={styles.statValue}>{metrics.total_leads.toLocaleString()}</p>
+          </div>
+          <div style={styles.statCard}>
+            <p style={styles.statLabel}>Inversión</p>
+            <p style={styles.statValue}>
+              {new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                maximumFractionDigits: 0
+              }).format(investment || 0)}
+            </p>
+          </div>
+
+          <div style={styles.statCard}>
+            <p style={styles.statLabel}>Costo por Lead</p>
+            <p style={styles.statValue}>
+              {metrics.total_leads > 0
+                ? new Intl.NumberFormat('es-CO', {
                   style: 'currency',
                   currency: 'COP',
                   maximumFractionDigits: 0
-                }).format(investment || 0)}
-              </p>
-            </div>
-
-            <div style={styles.statCard}>
-              <p style={styles.statLabel}>Costo por Lead</p>
-              <p style={styles.statValue}>
-                {metrics.total_leads > 0
-                  ? new Intl.NumberFormat('es-CO', {
-                    style: 'currency',
-                    currency: 'COP',
-                    maximumFractionDigits: 0
-                  }).format((investment || 0) / metrics.total_leads)
-                  : '$0'}
-              </p>
-            </div>
-            <div style={styles.statCard}>
-              <p style={styles.statLabel}>Fuentes</p>
-              <p style={styles.statValue}>{Object.keys(metrics.leads_by_source).length}</p>
-            </div>
-            <div style={styles.statCard}>
-              <p style={styles.statLabel}>Etiquetas</p>
-              <p style={styles.statValue}>{Object.keys(metrics.leads_by_tag).length}</p>
-            </div>
+                }).format((investment || 0) / metrics.total_leads)
+                : '$0'}
+            </p>
           </div>
-
-          <div style={styles.chartCard}>
-            <h3 style={styles.chartTitle}>Leads por día (últimos 30 días)</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getDailyData()}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#64748b" />
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc' }} />
-                <Bar dataKey="leads" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div style={styles.statCard}>
+            <p style={styles.statLabel}>Fuentes</p>
+            <p style={styles.statValue}>{Object.keys(metrics.leads_by_source).length}</p>
           </div>
-
-          <div style={styles.chartCard}>
-            <h3 style={styles.chartTitle}>Top 8 Fuentes de Leads</h3>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie data={getSourceData()} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label={({ name, percent }) => `${percent}%`}>
-                  {getSourceData().map((_, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc' }} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+          <div style={styles.statCard}>
+            <p style={styles.statLabel}>Etiquetas</p>
+            <p style={styles.statValue}>{Object.keys(metrics.leads_by_tag).length}</p>
           </div>
-        </>
-      ) : <p style={styles.loading}>No hay datos</p>}
-    </div>
-  );
+        </div>
+
+        <div style={styles.chartCard}>
+          <h3 style={styles.chartTitle}>Leads por día (últimos 30 días)</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={getDailyData()}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#64748b" />
+              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc' }} />
+              <Bar dataKey="leads" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={styles.chartCard}>
+          <h3 style={styles.chartTitle}>Top 8 Fuentes de Leads</h3>
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart>
+              <Pie data={getSourceData()} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label={({ name, percent }) => `${percent}%`}>
+                {getSourceData().map((_, index) => (
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc' }} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </>
+    ) : <p style={styles.loading}>No hay datos</p>}
+  </div>
+);
 }
 
 const styles = {
