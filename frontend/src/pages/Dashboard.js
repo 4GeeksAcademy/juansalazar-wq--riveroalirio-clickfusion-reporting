@@ -85,6 +85,15 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
           {clients.map(client => (
             <div key={client.id} style={styles.card}>
               <h3 style={styles.clientName}>{client.name}</h3>
+              
+              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
+                Última actualización: {
+                  client.last_sync
+                    ? new Date(client.last_sync).toLocaleString()
+                    : 'Sin sincronizar'
+                }
+              </p>
+              
               <p style={styles.clientId}>ID: {client.location_id}</p>
               <div style={styles.badge}>
                 {client.active ? '🟢 Activo' : '🔴 Inactivo'}
