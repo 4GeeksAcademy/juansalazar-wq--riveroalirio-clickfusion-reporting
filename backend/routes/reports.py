@@ -207,17 +207,12 @@ def get_ad_spend(client_id):
 
         total_spend = 0
 
-        if isinstance(data, list):
-            for item in data:
-                total_spend += float(item.get("spend", 0) or 0)
+        if data and "data" in data:
+            for item in data["data"]:
+                total_spend += float(item.get("spend", 0))
 
-        elif isinstance(data, dict):
-            rows = data.get("data", [])
-
-            if isinstance(rows, list):
-                for item in rows:
-                    total_spend += float(item.get("spend", 0) or 0)
-
+        
+            
         return jsonify({
             "total_spend": total_spend,
             "raw": data
