@@ -37,15 +37,16 @@ def login():
     
     access_token = create_access_token(identity=str(user.id))
     
-    return jsonify({
-        "token": access_token,
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "role": user.role
-        }
-    }), 200
+   return jsonify({
+    "token": access_token,
+    "user": {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+        "client_id": user.client_id   # 👈 ESTA ES LA CLAVE
+    }
+}), 200
 
 
 @auth_bp.route('/api/users', methods=['POST'])
