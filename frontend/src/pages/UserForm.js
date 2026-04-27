@@ -5,6 +5,7 @@ export default function UserForm({ clients, onSave, onCancel }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('viewer');
   const [clientId, setClientId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,9 +19,10 @@ export default function UserForm({ clients, onSave, onCancel }) {
         name,
         email,
         password,
-        client_id: parseInt(clientId)
+        role,
+        client_id: role === 'viewer' ? parseInt(clientId) : null
       });
-      alert('Usuario creado exitosamente!');
+      alert(`Usuario ${role} creado exitosamente!`);
       onSave();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear usuario');
@@ -31,7 +33,9 @@ export default function UserForm({ clients, onSave, onCancel }) {
   return (
     <div style={styles.overlay}>
       <div style={styles.modal}>
-        <h2 style={styles.title}>Nuevo Usuario Viewer</h2>
+        <h2 style={styles.title}>
+          {role === 'admin' ? 'Nuevo Usuario Admin' : 'Nuevo Usuario Viewer'}
+        </h2>
         <form onSubmit={handleSubmit}>
           <input
             style={styles.input}
@@ -59,21 +63,37 @@ export default function UserForm({ clients, onSave, onCancel }) {
           />
           <select
             style={styles.input}
-            value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-            required
+            value={role}
+            onChange={(e) => { setRole(e.target.value); setClientId(''); }}
           >
-            <option value="">Selecciona un cliente</option>
-            {clients.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
+            <option value="viewer">Viewer — solo ve su cliente</option>
+            <option value="admin">Admin — acceso total</option>
           </select>
+
+          {role === 'viewer' && (
+            <select
+              style={styles.input}
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              required
+            >
+              <option value="">Selecciona un cliente</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          )}
+
           {error && <p style={styles.error}>{error}</p>}
           <div style={styles.buttons}>
             <button style={styles.cancelBtn} type="button" onClick={onCancel}>
               Cancelar
             </button>
-            <button style={styles.saveBtn} type="submit" disabled={loading}>
+            <button
+              style={{ ...styles.saveBtn, backgroundColor: role === 'admin' ? '#3b82f6' : '#8b5cf6' }}
+              type="submit"
+              disabled={loading}
+            >
               {loading ? 'Creando...' : 'Crear Usuario'}
             </button>
           </div>
@@ -109,7 +129,7 @@ const styles = {
     color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer'
   },
   saveBtn: {
-    flex: 1, padding: '12px', backgroundColor: '#8b5cf6',
+    flex: 1, padding: '12px',
     color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer'
   }
 };

@@ -61,7 +61,7 @@ def login():
 
 
 # -------------------------
-# CREAR USUARIO VIEWER (solo admin)
+# CREAR USUARIO VIEWER Y ADMIN (solo admin)
 # -------------------------
 @auth_bp.route('/api/users', methods=['POST'])
 @jwt_required()
@@ -77,19 +77,27 @@ def create_viewer():
     if User.query.filter_by(email=data['email']).first():
         return jsonify({"error": "El email ya existe"}), 400
 
+    role = data.get('role', 'viewer')
+    if role not in ('viewer', 'admin'):
+        return jsonify({"error": "Rol inválido"}), 400
+
+    client_id = data.get('client_id')
+    if role == 'viewer' and not client_id:
+        return jsonify({"error": "El viewer debe tener un cliente asignado"}), 400
+
     new_user = User(
         name=data['name'],
         email=data['email'],
         password=generate_password_hash(data['password']),
-        role='viewer',
-        client_id=data.get('client_id')  # 🔥 CLAVE
+        role=role,
+        client_id=int(client_id) if client_id else None
     )
 
     db.session.add(new_user)
     db.session.commit()
 
     return jsonify({
-        "message": "Usuario viewer creado",
+        "message": f"Usuario {role} creado",
         "id": new_user.id
     }), 201
 
