@@ -21,7 +21,10 @@ database_url = os.getenv('DATABASE_URL', 'sqlite:///clickfusion.db')
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True, "pool_recycle": 300, "connect_args": {"sslmode": "require"}}
+engine_options = {"pool_pre_ping": True, "pool_recycle": 300}
+if database_url.startswith('postgresql://'):
+    engine_options["connect_args"] = {"sslmode": "require"}
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { login } from '../services/api';
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin, onForgotPassword }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -49,6 +49,9 @@ export default function Login({ onLogin }) {
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
+        <button style={styles.forgotLink} onClick={onForgotPassword}>
+          ¿Olvidaste tu contraseña?
+        </button>
       </div>
     </div>
   );
@@ -106,4 +109,15 @@ const styles = {
     color: '#ef4444',
     marginBottom: '12px',
   },
+  forgotLink: {
+  marginTop: '16px',
+  width: '100%',
+  padding: '8px',
+  background: 'none',
+  border: 'none',
+  color: '#94a3b8',
+  fontSize: '14px',
+  cursor: 'pointer',
+  textAlign: 'center',
+},
 };

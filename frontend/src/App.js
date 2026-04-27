@@ -2,6 +2,14 @@ import { useState } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Report from './pages/Report';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+
+function getInitialPage() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('token')) return 'reset-password';
+  return 'login';
+}
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -9,10 +17,12 @@ function App() {
     return saved ? JSON.parse(saved) : null;
   });
   const [selectedClient, setSelectedClient] = useState(null);
+  const [page, setPage] = useState(getInitialPage);
+
+  const resetToken = new URLSearchParams(window.location.search).get('token');
 
   const handleLogin = (userData) => {
     setUser(userData);
-    // Si es viewer, cargamos su cliente automáticamente
     if (userData.role === 'viewer' && userData.client_id) {
       setSelectedClient({ id: userData.client_id });
     }
@@ -23,9 +33,18 @@ function App() {
     localStorage.removeItem('user');
     setUser(null);
     setSelectedClient(null);
+    setPage('login');
   };
 
-  if (!user) return <Login onLogin={handleLogin} />;
+  if (!user) {
+    if (page === 'forgot-password') {
+      return <ForgotPassword onBack={() => setPage('login')} />;
+    }
+    if (page === 'reset-password') {
+      return <ResetPassword token={resetToken} onSuccess={() => setPage('login')} />;
+    }
+    return <Login onLogin={handleLogin} onForgotPassword={() => setPage('forgot-password')} />;
+  }
 
   if (selectedClient) return (
     <Report

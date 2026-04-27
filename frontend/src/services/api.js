@@ -32,4 +32,10 @@ export const getMetrics = (clientId, startDate, endDate) => {
 export const syncContacts = (clientId) =>
   api.post(`/api/clients/${clientId}/sync`);
 
+export const forgotPassword = (email) =>
+  api.post('/api/auth/forgot-password', { email });
+
+export const resetPassword = (token, password) =>
+  api.post('/api/auth/reset-password', { token, password });
+
 export default api;

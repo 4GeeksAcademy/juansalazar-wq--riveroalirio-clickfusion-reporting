@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
+import secrets
 
 db = SQLAlchemy()
 
@@ -24,6 +25,26 @@ class Client(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     last_sync = db.Column(db.DateTime)
     investment = db.Column(db.Float, default=0)
+    
+class PasswordResetToken(db.Model):
+    __tablename__ = 'password_reset_tokens'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token = db.Column(db.String(100), unique=True, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used = db.Column(db.Boolean, default=False)
+
+    @staticmethod
+    def create_for_user(user_id):
+        PasswordResetToken.query.filter_by(user_id=user_id, used=False).delete()
+        reset_token = PasswordResetToken(
+            user_id=user_id,
+            token=secrets.token_urlsafe(32),
+            expires_at=datetime.utcnow() + timedelta(minutes=30)
+        )
+        db.session.add(reset_token)
+        db.session.commit()
+        return reset_token    
 
 class Contact(db.Model):
     __tablename__ = 'contacts'
