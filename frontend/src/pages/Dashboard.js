@@ -123,7 +123,7 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
               </div>
             ))}
           </div>
-        )}
+        
 
         {showUserForm && (
           <UserForm
