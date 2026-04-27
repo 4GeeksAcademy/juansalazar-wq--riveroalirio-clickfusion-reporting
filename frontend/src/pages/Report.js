@@ -108,8 +108,8 @@ export default function Report({ client, onBack }) {
                     style: 'currency',
                     currency: 'COP',
                     maximumFractionDigits: 0
-                  }).format(investment || 0) / metrics.total_leads)
-                : '$0'}
+                  }).format((investment || 0) / metrics.total_leads)
+                  : '$0'}
               </p>
             </div>
             <div style={styles.statCard}>
