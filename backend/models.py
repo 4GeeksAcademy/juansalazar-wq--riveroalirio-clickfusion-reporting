@@ -25,6 +25,7 @@ class Client(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     last_sync = db.Column(db.DateTime)
     investment = db.Column(db.Float, default=0)
+    reportei_project_id = db.Column(db.Integer, nullable=True)
     
 class PasswordResetToken(db.Model):
     __tablename__ = 'password_reset_tokens'

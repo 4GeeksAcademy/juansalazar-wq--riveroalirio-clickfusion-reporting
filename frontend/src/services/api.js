@@ -44,4 +44,7 @@ export const getUsers = () =>
 export const deleteUser = (id) =>
   api.delete(`/api/users/${id}`);
 
+export const getInvestment = (clientId, startDate, endDate) =>
+  api.get(`/api/clients/${clientId}/investment?start_date=${startDate}&end_date=${endDate}`);
+
 export default api;

@@ -33,6 +33,7 @@ def get_clients():
         "active": c.active,
         "last_sync": c.last_sync.isoformat() if c.last_sync else None,
         "investment": c.investment,
+        "reportei_project_id": c.reportei_project_id,
 } for c in clients]), 200
 
 
@@ -54,6 +55,7 @@ def create_client():
         name=data['name'],
         location_id=data['location_id'],
         api_key=data['api_key']
+        reportei_project_id=data.get('reportei_project_id')
     )
 
     db.session.add(new_client)
@@ -84,6 +86,7 @@ def update_client(id):
     client.location_id = data.get('location_id', client.location_id)
     client.api_key = data.get('api_key', client.api_key)
     client.active = data.get('active', client.active)
+    client.reportei_project_id = data.get('reportei_project_id', client.reportei_project_id)
 
     db.session.commit()
 

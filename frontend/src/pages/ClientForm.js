@@ -5,6 +5,7 @@ export default function ClientForm({ client, onSave, onCancel }) {
   const [name, setName] = useState(client?.name || '');
   const [locationId, setLocationId] = useState(client?.location_id || '');
   const [apiKey, setApiKey] = useState('');
+  const [reporteiProjectId, setReporteiProjectId] = useState(client?.reportei_project_id || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -17,13 +18,15 @@ export default function ClientForm({ client, onSave, onCancel }) {
         await api.put(`/api/clients/${client.id}`, {
           name,
           location_id: locationId,
-          api_key: apiKey || undefined
+          api_key: apiKey || undefined,
+          reportei_project_id: reporteiProjectId ? parseInt(reporteiProjectId) : null
         });
       } else {
         await api.post('/api/clients', {
           name,
           location_id: locationId,
-          api_key: apiKey
+          api_key: apiKey,
+          reportei_project_id: reporteiProjectId ? parseInt(reporteiProjectId) : null
         });
       }
       onSave();
@@ -65,6 +68,13 @@ export default function ClientForm({ client, onSave, onCancel }) {
             value={apiKey}
             onChange={e => setApiKey(e.target.value)}
             required={!client}
+          />
+          <label style={styles.label}>Reportei Project ID (opcional)</label>
+          <input
+            style={styles.input}
+            placeholder="Ej: 642266"
+            value={reporteiProjectId}
+            onChange={e => setReporteiProjectId(e.target.value)}
           />
           {error && <p style={styles.error}>{error}</p>}
           <div style={styles.buttons}>
