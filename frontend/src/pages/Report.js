@@ -28,22 +28,22 @@ export default function Report({ client, onBack }) {
   };
 
   const loadInvestment = async () => {
-  try {
-    const res = await fetch(
-      `${process.env.REACT_APP_API_URL}/api/reports/ad-spend/${client.id}?startDate=${startDate}&endDate=${endDate}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/reports/ad-spend/${client.id}?startDate=${startDate}&endDate=${endDate}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
         }
-      }
-    );
+      );
 
-    const data = await res.json();
-    setInvestment(data.total_spend || 0);
-  } catch (err) {
-    console.error("Error trayendo inversión:", err);
-  }
-};
+      const data = await res.json();
+      setInvestment(data.total_spend || 0);
+    } catch (err) {
+      console.error("Error trayendo inversión:", err);
+    }
+  };
 
   const getDailyData = () => {
     if (!metrics) return [];
@@ -96,7 +96,7 @@ export default function Report({ client, onBack }) {
                   style: 'currency',
                   currency: 'COP',
                   maximumFractionDigits: 0
-                }).format(59000000)}
+                }).format(investment || 0)}
               </p>
             </div>
 
@@ -108,8 +108,8 @@ export default function Report({ client, onBack }) {
                     style: 'currency',
                     currency: 'COP',
                     maximumFractionDigits: 0
-                  }).format(59000000 / metrics.total_leads)
-                  : '$0'}
+                  }).format(investment || 0) / metrics.total_leads)
+                : '$0'}
               </p>
             </div>
             <div style={styles.statCard}>
