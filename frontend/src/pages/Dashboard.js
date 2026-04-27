@@ -88,10 +88,9 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
         )}
     </div>
 
-      {
-    loading ? (
-      <p style={styles.loading}>Cargando clientes...</p>
-    ) : (
+      {loading ? (
+        <p style={styles.loading}>Cargando clientes...</p>
+      ) : (
       <div style={styles.grid}>
         {clients.map(client => (
           <div key={client.id} style={styles.card}>
