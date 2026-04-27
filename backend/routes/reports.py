@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Client, Contact, User
 from services.ghl_service import get_contacts_page
 from datetime import datetime
+from services.ghl_service import get_facebook_ad_reporting
 import json
 
 reports_bp = Blueprint('reports', __name__)
@@ -161,3 +162,33 @@ def get_metrics(client_id):
         "leads_by_source": source_count,
         "leads_by_day": daily_count
     }), 200
+    
+    @reports_bp.route('/api/reports/ad-spend/<int:client_id>', methods=['GET'])
+@jwt_required()
+def get_ad_spend(client_id):
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    client = Client.query.get_or_404(client_id)
+
+    # seguridad
+    if user.role != 'admin' and user.client_id != client.id:
+        return jsonify({"error": "No autorizado"}), 403
+
+    try:
+        data = get_facebook_ad_reporting(
+            client.api_key,
+            client.location_id,
+            "2026-01-01",
+            "2026-04-30"
+        )
+
+        # dependiendo de cómo venga la respuesta
+        total_spend = sum(item.get("spend", 0) for item in data)
+
+        return jsonify({
+            "investment": total_spend
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

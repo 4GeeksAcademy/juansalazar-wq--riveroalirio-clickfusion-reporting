@@ -41,3 +41,22 @@ def get_opportunities(api_key, location_id):
     params = {"location_id": location_id}
     response = requests.get(url, headers=headers, params=params)
     return response.json()
+
+def get_facebook_ad_reporting(api_key, location_id, start_date, end_date):
+    url = f"{GHL_BASE_URL}/ad-publishing/facebook/reporting"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Version": "2021-07-28"
+    }
+    params = {
+        "locationId": location_id,
+        "groupBy": "month",
+        "startDate": start_date,
+        "endDate": end_date,
+        "type": "INTEGRATION",
+        "fields": "impressions,clicks,spend,cpc,cost_per_conversion,conversions,cpm,reach,frequency"
+    }
+
+    response = requests.get(url, headers=headers, params=params, timeout=30)
+    response.raise_for_status()
+    return response.json()
