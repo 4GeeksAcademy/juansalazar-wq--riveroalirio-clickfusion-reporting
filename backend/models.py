@@ -22,6 +22,7 @@ class Client(db.Model):
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    last_sync = db.Column(db.DateTime)
 
 class Contact(db.Model):
     __tablename__ = 'contacts'
