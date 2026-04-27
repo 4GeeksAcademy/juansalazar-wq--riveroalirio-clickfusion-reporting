@@ -76,7 +76,7 @@ export default function Report({ client, onBack }) {
                   style: 'currency',
                   currency: 'COP',
                   maximumFractionDigits: 0
-                }).format(59000000)
+                }).format(59000000)}
               </p>
             </div>
 
