@@ -54,7 +54,7 @@ def create_client():
     new_client = Client(
         name=data['name'],
         location_id=data['location_id'],
-        api_key=data['api_key']
+        api_key=data['api_key'],
         reportei_project_id=data.get('reportei_project_id')
     )
 
