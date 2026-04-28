@@ -6,7 +6,6 @@ const api = axios.create({
   baseURL: API_URL,
 });
 
-// Agregar token automáticamente a cada request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -32,19 +31,19 @@ export const getMetrics = (clientId, startDate, endDate) => {
 export const syncContacts = (clientId) =>
   api.post(`/api/clients/${clientId}/sync`);
 
+export const getInvestment = (clientId, startDate, endDate) =>
+  api.get(`/api/clients/${clientId}/investment?start_date=${startDate}&end_date=${endDate}`);
+
+export const getUsers = () =>
+  api.get('/api/users');
+
+export const deleteUser = (userId) =>
+  api.delete(`/api/users/${userId}`);
+
 export const forgotPassword = (email) =>
   api.post('/api/auth/forgot-password', { email });
 
 export const resetPassword = (token, password) =>
   api.post('/api/auth/reset-password', { token, password });
-
-export const getUsers = () =>
-  api.get('/api/users');
-
-export const deleteUser = (id) =>
-  api.delete(`/api/users/${id}`);
-
-export const getInvestment = (clientId, startDate, endDate) =>
-  api.get(`/api/clients/${clientId}/investment?start_date=${startDate}&end_date=${endDate}`);
 
 export default api;

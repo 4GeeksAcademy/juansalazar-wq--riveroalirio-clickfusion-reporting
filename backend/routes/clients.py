@@ -16,14 +16,11 @@ def get_clients():
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    # Admin ve todos
     if user.role == 'admin':
         clients = Client.query.all()
     else:
-        # Viewer solo ve su cliente
         if not user.client_id:
             return jsonify([]), 200
-
         clients = Client.query.filter_by(id=user.client_id).all()
 
     return jsonify([{
@@ -34,7 +31,7 @@ def get_clients():
         "last_sync": c.last_sync.isoformat() if c.last_sync else None,
         "investment": c.investment,
         "reportei_project_id": c.reportei_project_id,
-} for c in clients]), 200
+    } for c in clients]), 200
 
 
 # -------------------------

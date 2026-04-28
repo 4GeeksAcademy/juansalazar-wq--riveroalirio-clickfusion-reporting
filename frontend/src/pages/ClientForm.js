@@ -75,6 +75,7 @@ export default function ClientForm({ client, onSave, onCancel }) {
             placeholder="Ej: 642266"
             value={reporteiProjectId}
             onChange={e => setReporteiProjectId(e.target.value)}
+            type="number"
           />
           {error && <p style={styles.error}>{error}</p>}
           <div style={styles.buttons}>

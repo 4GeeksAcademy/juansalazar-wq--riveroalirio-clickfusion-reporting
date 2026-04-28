@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Client, Contact, User
 from services.ghl_service import get_contacts_page, get_facebook_ad_reporting
+from services.reportei_service import get_facebook_integration_id, get_facebook_spend
 from datetime import datetime
 import json
 
@@ -183,6 +184,36 @@ def get_metrics(client_id):
     }), 200
 
 
+@reports_bp.route('/api/clients/<int:client_id>/investment', methods=['GET'])
+@jwt_required()
+def get_investment(client_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    client = Client.query.get_or_404(client_id)
+
+    if user.role != 'admin' and user.client_id != client.id:
+        return jsonify({"error": "No autorizado"}), 403
+
+    start_date = request.args.get('start_date', '2026-01-01')
+    end_date = request.args.get('end_date', '2026-04-30')
+
+    if not client.reportei_project_id:
+        return jsonify({"total_spend": 0, "source": "no_reportei"}), 200
+
+    try:
+        integration_id = get_facebook_integration_id(client.reportei_project_id)
+        if not integration_id:
+            return jsonify({"total_spend": 0, "source": "no_integration"}), 200
+
+        spend = get_facebook_spend(integration_id, start_date, end_date)
+        return jsonify({"total_spend": spend, "source": "reportei"}), 200
+
+    except Exception as e:
+        print(f"❌ ERROR Reportei: {str(e)}")
+        return jsonify({"total_spend": 0, "error": str(e)}), 200
+
+
 @reports_bp.route('/api/reports/ad-spend/<int:client_id>', methods=['GET'])
 @jwt_required()
 def get_ad_spend(client_id):
@@ -212,8 +243,6 @@ def get_ad_spend(client_id):
             for item in data["data"]:
                 total_spend += float(item.get("spend", 0))
 
-        
-            
         return jsonify({
             "total_spend": total_spend,
             "raw": data
@@ -222,39 +251,3 @@ def get_ad_spend(client_id):
     except Exception as e:
         print("❌ ERROR AD SPEND:", str(e))
         return jsonify({"error": str(e)}), 500
-@reports_bp.route('/api/clients/<int:client_id>/investment', methods=['GET'])
-@jwt_required()
-def get_investment(client_id):
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-
-    client = Client.query.get_or_404(client_id)
-
-    if user.role != 'admin' and user.client_id != client.id:
-        return jsonify({"error": "No autorizado"}), 403
-
-    if not client.reportei_project_id:
-        return jsonify({"total_spend": 0, "source": "none"}), 200
-
-    start_date = request.args.get('start_date', '2026-01-01')
-    end_date = request.args.get('end_date', '2026-12-31')
-
-    try:
-        from services.reportei_service import get_facebook_integration_id, get_facebook_spend
-
-        integration_id = get_facebook_integration_id(client.reportei_project_id)
-
-        if not integration_id:
-            return jsonify({"total_spend": 0, "source": "no_integration"}), 200
-
-        spend = get_facebook_spend(integration_id, start_date, end_date)
-
-        return jsonify({
-            "total_spend": spend,
-            "source": "reportei"
-        }), 200
-
-    except Exception as e:
-        print(f"❌ ERROR Reportei: {str(e)}")
-        return jsonify({"error": str(e)}), 500    
-    
