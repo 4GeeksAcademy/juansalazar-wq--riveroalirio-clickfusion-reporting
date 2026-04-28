@@ -80,14 +80,7 @@ export default function ClientForm({ client, onSave, onCancel }) {
             onChange={e => setReporteiProjectId(e.target.value)}
             type="number"
           />
-          <label style={styles.label}>Reportei GA4 Integration ID (opcional)</label>
-          <input
-            style={styles.input}
-            placeholder="Ej: 2585731"
-            value={reporteiGa4Id}
-            onChange={e => setReporteiGa4Id(e.target.value)}
-            type="number"
-          />
+       
           {error && <p style={styles.error}>{error}</p>}
           <div style={styles.buttons}>
             <button type="button" style={styles.cancelBtn} onClick={onCancel}>

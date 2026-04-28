@@ -187,11 +187,15 @@ def get_ga4(client_id):
     start_date = request.args.get('start_date', '2025-05-01')
     end_date = request.args.get('end_date', '2026-04-30')
 
-    if not client.reportei_ga4_id:
-        return jsonify({"values": [], "source": "no_ga4"}), 200
+    if not client.reportei_project_id:
+        return jsonify({"values": [], "source": "no_reportei"}), 200
 
     try:
-        values = get_ga4_users_over_time(client.reportei_ga4_id, start_date, end_date)
+        integration_id = get_integration_id(client.reportei_project_id, "google_analytics_4")
+        if not integration_id:
+            return jsonify({"values": [], "source": "no_ga4"}), 200
+
+        values = get_ga4_users_over_time(integration_id, start_date, end_date)
         return jsonify({"values": values, "source": "reportei"}), 200
 
     except Exception as e:
