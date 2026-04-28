@@ -1,7 +1,7 @@
 import requests
 import os
 
-REPORTEI_BASE_URL = "https://api.reportei.com/v2"
+REPORTEI_BASE_URL = "https://app.reportei.com/api/v2"
 
 
 def get_headers():
