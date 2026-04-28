@@ -23,6 +23,10 @@ def init_db():
         db.session.execute(
             text("ALTER TABLE clients ADD COLUMN IF NOT EXISTS reportei_project_id INTEGER")
         )
+        
+        db.session.execute(
+            text("ALTER TABLE clients ADD COLUMN IF NOT EXISTS reportei_ga4_id INTEGER")
+        )
 
         db.session.commit()
         print("✅ Columnas verificadas correctamente")

@@ -4,9 +4,6 @@ from models import db, Client, User
 
 clients_bp = Blueprint('clients', __name__)
 
-# -------------------------
-# OBTENER CLIENTES
-# -------------------------
 @clients_bp.route('/api/clients', methods=['GET'])
 @jwt_required()
 def get_clients():
@@ -31,12 +28,10 @@ def get_clients():
         "last_sync": c.last_sync.isoformat() if c.last_sync else None,
         "investment": c.investment,
         "reportei_project_id": c.reportei_project_id,
+        "reportei_ga4_id": c.reportei_ga4_id,
     } for c in clients]), 200
 
 
-# -------------------------
-# CREAR CLIENTE (solo admin)
-# -------------------------
 @clients_bp.route('/api/clients', methods=['POST'])
 @jwt_required()
 def create_client():
@@ -52,21 +47,16 @@ def create_client():
         name=data['name'],
         location_id=data['location_id'],
         api_key=data['api_key'],
-        reportei_project_id=data.get('reportei_project_id')
+        reportei_project_id=data.get('reportei_project_id'),
+        reportei_ga4_id=data.get('reportei_ga4_id')
     )
 
     db.session.add(new_client)
     db.session.commit()
 
-    return jsonify({
-        "message": "Cliente creado",
-        "id": new_client.id
-    }), 201
+    return jsonify({"message": "Cliente creado", "id": new_client.id}), 201
 
 
-# -------------------------
-# ACTUALIZAR CLIENTE (solo admin)
-# -------------------------
 @clients_bp.route('/api/clients/<int:id>', methods=['PUT'])
 @jwt_required()
 def update_client(id):
@@ -84,15 +74,13 @@ def update_client(id):
     client.api_key = data.get('api_key', client.api_key)
     client.active = data.get('active', client.active)
     client.reportei_project_id = data.get('reportei_project_id', client.reportei_project_id)
+    client.reportei_ga4_id = data.get('reportei_ga4_id', client.reportei_ga4_id)
 
     db.session.commit()
 
     return jsonify({"message": "Cliente actualizado"}), 200
 
 
-# -------------------------
-# ELIMINAR CLIENTE (solo admin)
-# -------------------------
 @clients_bp.route('/api/clients/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_client(id):
@@ -103,7 +91,6 @@ def delete_client(id):
         return jsonify({"error": "No autorizado"}), 403
 
     client = Client.query.get_or_404(id)
-
     db.session.delete(client)
     db.session.commit()
 

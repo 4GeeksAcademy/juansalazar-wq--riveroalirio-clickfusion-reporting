@@ -1,39 +1,39 @@
 import { useState, useEffect } from 'react';
-import { getMetrics, getInvestment } from '../services/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { getMetrics, getInvestment, getGA4 } from '../services/api';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
+
+const fmt = (n) => new Intl.NumberFormat('es-CO').format(Math.round(n || 0));
+const fmtCOP = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0);
 
 export default function Report({ client, onBack }) {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('2026-01-01');
   const [endDate, setEndDate] = useState('2026-04-30');
-  const [investment, setInvestment] = useState(0);
+  const [fbMetrics, setFbMetrics] = useState(null);
+  const [ga4Data, setGa4Data] = useState([]);
 
   useEffect(() => {
-    loadMetrics();
-    loadInvestment();
+    loadAll();
   }, [startDate, endDate]);
 
-  const loadMetrics = async () => {
+  const loadAll = async () => {
     setLoading(true);
     try {
-      const res = await getMetrics(client.id, startDate, endDate);
-      setMetrics(res.data);
+      const [metricsRes, investmentRes, ga4Res] = await Promise.all([
+        getMetrics(client.id, startDate, endDate),
+        getInvestment(client.id, startDate, endDate),
+        getGA4(client.id, '2025-05-01', endDate)
+      ]);
+      setMetrics(metricsRes.data);
+      setFbMetrics(investmentRes.data);
+      setGa4Data(ga4Res.data.values || []);
     } catch (err) {
       console.error(err);
     }
     setLoading(false);
-  };
-
-  const loadInvestment = async () => {
-    try {
-      const res = await getInvestment(client.id, startDate, endDate);
-      setInvestment(res.data.total_spend || 0);
-    } catch (err) {
-      console.error("Error trayendo inversión:", err);
-    }
   };
 
   const getDailyData = () => {
@@ -56,6 +56,17 @@ export default function Report({ client, onBack }) {
     }));
   };
 
+  const getGA4ChartData = () => {
+    if (!ga4Data || !Array.isArray(ga4Data)) return [];
+    return ga4Data.map(item => ({
+      date: item.date ? item.date.slice(0, 7) : item[0],
+      usuarios: item.totalUsers || item[1] || 0
+    }));
+  };
+
+  const spend = fbMetrics?.total_spend || 0;
+  const cpl = metrics?.total_leads > 0 ? spend / metrics.total_leads : 0;
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -68,39 +79,19 @@ export default function Report({ client, onBack }) {
       <div style={styles.filters}>
         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={styles.dateInput} />
         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={styles.dateInput} />
-        <button style={styles.filterBtn} onClick={() => { loadMetrics(); loadInvestment(); }}>Filtrar</button>
+        <button style={styles.filterBtn} onClick={loadAll}>Filtrar</button>
       </div>
 
       {loading ? (
         <p style={styles.loading}>Cargando métricas...</p>
       ) : metrics ? (
         <>
+          {/* Tarjetas GHL */}
+          <p style={styles.sectionLabel}>Leads (GHL)</p>
           <div style={styles.statsGrid}>
             <div style={styles.statCard}>
               <p style={styles.statLabel}>Total Leads</p>
-              <p style={styles.statValue}>{metrics.total_leads.toLocaleString()}</p>
-            </div>
-            <div style={styles.statCard}>
-              <p style={styles.statLabel}>Inversión</p>
-              <p style={styles.statValue}>
-                {new Intl.NumberFormat('es-CO', {
-                  style: 'currency',
-                  currency: 'COP',
-                  maximumFractionDigits: 0
-                }).format(investment || 0)}
-              </p>
-            </div>
-            <div style={styles.statCard}>
-              <p style={styles.statLabel}>Costo por Lead</p>
-              <p style={styles.statValue}>
-                {metrics.total_leads > 0
-                  ? new Intl.NumberFormat('es-CO', {
-                    style: 'currency',
-                    currency: 'COP',
-                    maximumFractionDigits: 0
-                  }).format((investment || 0) / metrics.total_leads)
-                  : '$0'}
-              </p>
+              <p style={styles.statValue}>{fmt(metrics.total_leads)}</p>
             </div>
             <div style={styles.statCard}>
               <p style={styles.statLabel}>Fuentes</p>
@@ -112,6 +103,36 @@ export default function Report({ client, onBack }) {
             </div>
           </div>
 
+          {/* Tarjetas Facebook Ads */}
+          {fbMetrics && fbMetrics.source === 'reportei' && (
+            <>
+              <p style={styles.sectionLabel}>Facebook Ads</p>
+              <div style={styles.statsGrid}>
+                <div style={styles.statCard}>
+                  <p style={styles.statLabel}>Inversión</p>
+                  <p style={styles.statValue}>{fmtCOP(spend)}</p>
+                </div>
+                <div style={styles.statCard}>
+                  <p style={styles.statLabel}>Costo por Lead</p>
+                  <p style={styles.statValue}>{fmtCOP(cpl)}</p>
+                </div>
+                <div style={styles.statCard}>
+                  <p style={styles.statLabel}>Alcance</p>
+                  <p style={styles.statValue}>{fmt(fbMetrics.reach)}</p>
+                </div>
+                <div style={styles.statCard}>
+                  <p style={styles.statLabel}>Impresiones</p>
+                  <p style={styles.statValue}>{fmt(fbMetrics.impressions)}</p>
+                </div>
+                <div style={styles.statCard}>
+                  <p style={styles.statLabel}>Clics</p>
+                  <p style={styles.statValue}>{fmt(fbMetrics.clicks)}</p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Gráfica leads por día */}
           <div style={styles.chartCard}>
             <h3 style={styles.chartTitle}>Leads por día (últimos 30 días)</h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -125,11 +146,12 @@ export default function Report({ client, onBack }) {
             </ResponsiveContainer>
           </div>
 
+          {/* Gráfica fuentes */}
           <div style={styles.chartCard}>
             <h3 style={styles.chartTitle}>Top 8 Fuentes de Leads</h3>
             <ResponsiveContainer width="100%" height={350}>
               <PieChart>
-                <Pie data={getSourceData()} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label={({ name, percent }) => `${percent}%`}>
+                <Pie data={getSourceData()} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label={({ percent }) => `${percent}%`}>
                   {getSourceData().map((_, index) => (
                     <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
@@ -139,6 +161,22 @@ export default function Report({ client, onBack }) {
               </PieChart>
             </ResponsiveContainer>
           </div>
+
+          {/* Gráfica GA4 */}
+          {ga4Data.length > 0 && (
+            <div style={styles.chartCard}>
+              <h3 style={styles.chartTitle}>Tráfico Landing Page (Google Analytics)</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={getGA4ChartData()}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }} />
+                  <YAxis stroke="#64748b" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc' }} />
+                  <Line type="monotone" dataKey="usuarios" stroke="#10b981" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </>
       ) : <p style={styles.loading}>No hay datos</p>}
     </div>
@@ -154,10 +192,11 @@ const styles = {
   dateInput: { padding: '10px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: '#1e293b', color: '#f8fafc' },
   filterBtn: { padding: '10px 20px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   loading: { color: '#94a3b8' },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '24px' },
+  sectionLabel: { color: '#64748b', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' },
   statCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155', textAlign: 'center' },
   statLabel: { color: '#64748b', margin: '0 0 8px', fontSize: '14px' },
-  statValue: { color: '#f8fafc', margin: 0, fontSize: '32px', fontWeight: 'bold' },
+  statValue: { color: '#f8fafc', margin: 0, fontSize: '28px', fontWeight: 'bold' },
   chartCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155', marginBottom: '24px' },
   chartTitle: { color: '#f8fafc', margin: '0 0 20px', fontSize: '16px' },
 };

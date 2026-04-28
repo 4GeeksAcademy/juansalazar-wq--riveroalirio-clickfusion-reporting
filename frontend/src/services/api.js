@@ -34,6 +34,9 @@ export const syncContacts = (clientId) =>
 export const getInvestment = (clientId, startDate, endDate) =>
   api.get(`/api/clients/${clientId}/investment?start_date=${startDate}&end_date=${endDate}`);
 
+export const getGA4 = (clientId, startDate, endDate) =>
+  api.get(`/api/clients/${clientId}/ga4?start_date=${startDate}&end_date=${endDate}`);
+
 export const getUsers = () =>
   api.get('/api/users');
 

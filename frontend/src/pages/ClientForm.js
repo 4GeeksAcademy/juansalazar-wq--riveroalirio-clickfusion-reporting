@@ -6,6 +6,7 @@ export default function ClientForm({ client, onSave, onCancel }) {
   const [locationId, setLocationId] = useState(client?.location_id || '');
   const [apiKey, setApiKey] = useState('');
   const [reporteiProjectId, setReporteiProjectId] = useState(client?.reportei_project_id || '');
+  const [reporteiGa4Id, setReporteiGa4Id] = useState(client?.reportei_ga4_id || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,14 +20,16 @@ export default function ClientForm({ client, onSave, onCancel }) {
           name,
           location_id: locationId,
           api_key: apiKey || undefined,
-          reportei_project_id: reporteiProjectId ? parseInt(reporteiProjectId) : null
+          reportei_project_id: reporteiProjectId ? parseInt(reporteiProjectId) : null,
+          reportei_ga4_id: reporteiGa4Id ? parseInt(reporteiGa4Id) : null
         });
       } else {
         await api.post('/api/clients', {
           name,
           location_id: locationId,
           api_key: apiKey,
-          reportei_project_id: reporteiProjectId ? parseInt(reporteiProjectId) : null
+          reportei_project_id: reporteiProjectId ? parseInt(reporteiProjectId) : null,
+          reportei_ga4_id: reporteiGa4Id ? parseInt(reporteiGa4Id) : null
         });
       }
       onSave();
@@ -77,20 +80,20 @@ export default function ClientForm({ client, onSave, onCancel }) {
             onChange={e => setReporteiProjectId(e.target.value)}
             type="number"
           />
+          <label style={styles.label}>Reportei GA4 Integration ID (opcional)</label>
+          <input
+            style={styles.input}
+            placeholder="Ej: 2585731"
+            value={reporteiGa4Id}
+            onChange={e => setReporteiGa4Id(e.target.value)}
+            type="number"
+          />
           {error && <p style={styles.error}>{error}</p>}
           <div style={styles.buttons}>
-            <button
-              type="button"
-              style={styles.cancelBtn}
-              onClick={onCancel}
-            >
+            <button type="button" style={styles.cancelBtn} onClick={onCancel}>
               Cancelar
             </button>
-            <button
-              type="submit"
-              style={styles.saveBtn}
-              disabled={loading}
-            >
+            <button type="submit" style={styles.saveBtn} disabled={loading}>
               {loading ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
@@ -113,7 +116,9 @@ const styles = {
     padding: '32px',
     width: '100%',
     maxWidth: '480px',
-    border: '1px solid #334155'
+    border: '1px solid #334155',
+    maxHeight: '90vh',
+    overflowY: 'auto'
   },
   title: { color: '#f8fafc', margin: '0 0 24px', fontSize: '20px' },
   label: { display: 'block', color: '#94a3b8', fontSize: '13px', marginBottom: '6px' },
