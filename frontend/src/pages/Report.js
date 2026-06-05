@@ -197,7 +197,7 @@ const styles = {
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' },
   statCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155', textAlign: 'center' },
   statLabel: { color: '#64748b', margin: '0 0 8px', fontSize: '14px' },
-  statValue: { color: '#f8fafc', margin: 0, fontSize: '28px', fontWeight: 'bold' },
+  statValue: { color: '#f8fafc', margin: 0, fontSize: '22px', fontWeight: 'bold', wordBreak: 'break-word', lineHeight: '1.2' },
   chartCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155', marginBottom: '24px' },
   chartTitle: { color: '#f8fafc', margin: '0 0 20px', fontSize: '16px' },
 };
