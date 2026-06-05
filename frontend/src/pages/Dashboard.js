@@ -4,6 +4,7 @@ import api from '../services/api';
 import ClientForm from './ClientForm';
 import UserForm from './UserForm';
 import UserList from './UserList';
+import { RefreshCw, Pencil, Trash2, BarChart2, Plus, Users } from 'lucide-react';
 
 export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [clients, setClients] = useState([]);
@@ -72,10 +73,10 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
         {user.role === 'admin' && (
           <div style={{ display: 'flex', gap: '12px' }}>
             <button style={styles.addBtn} onClick={() => setShowForm(true)}>
-              + Nuevo Cliente
+              <Plus size={16} style={{marginRight:'6px'}} /> Nuevo Cliente
             </button>
             <button style={{ ...styles.addBtn, backgroundColor: '#8b5cf6' }} onClick={() => setShowUserList(true)}>
-              👥 Usuarios
+              <Users size={16} style={{marginRight:'6px'}} /> Usuarios
             </button>
           </div>
         )}
@@ -93,58 +94,63 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
                 Última actualización: {
                   client.last_sync
                     ? new Date(client.last_sync + 'Z').toLocaleString('es-CO', {
-                      timeZone: 'America/Bogota',
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })
+                        timeZone: 'America/Bogota',
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      })
                     : 'Sin sincronizar'
                 }
               </p>
 
               <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
                 Inversión: {
-                  new Intl.NumberFormat('es-CO', {
-                    style: 'currency',
-                    currency: 'COP'
-                  }).format(client.investment ? client.investment : 0)
+                  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' })
+                    .format(client.investment || 0)
                 }
               </p>
 
-              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
-                CPL: Próximamente
-              </p>
-
               <p style={styles.clientId}>ID: {client.location_id}</p>
+
               <div style={styles.badge}>
-                {client.active ? '🟢 Activo' : '🔴 Inactivo'}
+                <span style={{
+                  display: 'inline-block',
+                  width: '8px', height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: client.active ? '#10b981' : '#ef4444',
+                  marginRight: '6px'
+                }}></span>
+                {client.active ? 'Activo' : 'Inactivo'}
               </div>
+
               <div style={styles.actions}>
                 <button style={styles.reportBtn} onClick={() => onSelectClient(client)}>
-                  Ver Reporte
+                  <BarChart2 size={15} style={{marginRight:'5px'}} /> Ver Reporte
                 </button>
                 <button
                   style={styles.syncBtn}
                   onClick={() => handleSync(client.id)}
                   disabled={syncing === client.id}
+                  title="Sincronizar"
                 >
-                  {syncing === client.id ? '...' : '🔄'}
+                  <RefreshCw size={15} style={{
+                    animation: syncing === client.id ? 'spin 1s linear infinite' : 'none'
+                  }} />
                 </button>
                 {user.role === 'admin' && (
                   <>
                     <button
                       style={styles.editBtn}
                       onClick={() => { setEditingClient(client); setShowForm(true); }}
+                      title="Editar"
                     >
-                      ✏️
+                      <Pencil size={15} />
                     </button>
                     <button
                       style={styles.deleteBtn}
                       onClick={() => handleDelete(client.id)}
+                      title="Eliminar"
                     >
-                      🗑️
+                      <Trash2 size={15} />
                     </button>
                   </>
                 )}
@@ -177,6 +183,14 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
           onNewUser={() => { setShowUserList(false); setShowUserForm(true); }}
         />
       )}
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        button { display: inline-flex; align-items: center; justify-content: center; }
+      `}</style>
     </div>
   );
 }
@@ -190,13 +204,13 @@ const styles = {
   logoutBtn: { padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   sectionTitle: { color: '#f8fafc', margin: 0 },
-  addBtn: { padding: '10px 20px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' },
+  addBtn: { padding: '10px 20px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', display: 'inline-flex', alignItems: 'center' },
   loading: { color: '#94a3b8' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' },
   card: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155' },
   clientName: { color: '#f8fafc', margin: '0 0 8px', fontSize: '18px' },
   clientId: { color: '#64748b', fontSize: '12px', margin: '0 0 12px' },
-  badge: { color: '#94a3b8', marginBottom: '16px' },
+  badge: { color: '#94a3b8', marginBottom: '16px', display: 'flex', alignItems: 'center' },
   actions: { display: 'flex', gap: '8px' },
   reportBtn: { flex: 1, padding: '10px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   syncBtn: { padding: '10px 12px', backgroundColor: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
