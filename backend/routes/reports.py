@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Client, Contact, User
+from models import db, Client, Contact, User, ClientFieldConfig
 from services.ghl_service import get_contacts_page
 from services.reportei_service import get_integration_id, get_facebook_metrics, get_ga4_users_over_time
 from datetime import datetime
@@ -250,3 +250,115 @@ def get_custom_fields_labels(client_id):
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+        @reports_bp.route('/api/clients/<int:client_id>/field-config', methods=['GET'])
+@jwt_required()
+def get_field_config(client_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if user.role != 'admin':
+        return jsonify({"error": "No autorizado"}), 403
+
+    configs = ClientFieldConfig.query.filter_by(client_id=client_id).order_by(ClientFieldConfig.position).all()
+    return jsonify([{
+        "id": c.id,
+        "field_id": c.field_id,
+        "field_label": c.field_label,
+        "visible": c.visible,
+        "position": c.position
+    } for c in configs]), 200
+
+
+@reports_bp.route('/api/clients/<int:client_id>/field-config', methods=['POST'])
+@jwt_required()
+def save_field_config(client_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if user.role != 'admin':
+        return jsonify({"error": "No autorizado"}), 403
+
+    data = request.get_json()
+    fields = data.get('fields', [])
+
+    for i, f in enumerate(fields):
+        existing = ClientFieldConfig.query.filter_by(
+            client_id=client_id,
+            field_id=f['field_id']
+        ).first()
+
+        if existing:
+            existing.field_label = f['field_label']
+            existing.visible = f['visible']
+            existing.position = i
+        else:
+            new_config = ClientFieldConfig(
+                client_id=client_id,
+                field_id=f['field_id'],
+                field_label=f['field_label'],
+                visible=f['visible'],
+                position=i
+            )
+            db.session.add(new_config)
+
+    db.session.commit()
+    return jsonify({"message": "Configuración guardada"}), 200
+
+
+@reports_bp.route('/api/clients/<int:client_id>/field-data', methods=['GET'])
+@jwt_required()
+def get_field_data(client_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    client = Client.query.get_or_404(client_id)
+
+    if user.role != 'admin' and user.client_id != client.id:
+        return jsonify({"error": "No autorizado"}), 403
+
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    configs = ClientFieldConfig.query.filter_by(
+        client_id=client_id,
+        visible=True
+    ).order_by(ClientFieldConfig.position).all()
+
+    if not configs:
+        return jsonify([]), 200
+
+    query = Contact.query.filter_by(location_id=client.location_id)
+    if start_date:
+        query = query.filter(Contact.date_added >= datetime.fromisoformat(start_date))
+    if end_date:
+        query = query.filter(Contact.date_added <= datetime.fromisoformat(end_date))
+
+    contacts = query.all()
+
+    result = []
+    for config in configs:
+        value_count = {}
+        for c in contacts:
+            if not c.custom_fields:
+                continue
+            try:
+                fields = json.loads(c.custom_fields)
+                for f in fields:
+                    if f.get('id') == config.field_id:
+                        value = f.get('value', '')
+                        if not value:
+                            continue
+                        val_str = str(value).strip("[]'\"")
+                        for v in val_str.split("', '"):
+                            v = v.strip("[]'\" ")
+                            if v:
+                                value_count[v] = value_count.get(v, 0) + 1
+            except:
+                continue
+
+        if value_count:
+            result.append({
+                "field_id": config.field_id,
+                "field_label": config.field_label,
+                "values": dict(sorted(value_count.items(), key=lambda x: x[1], reverse=True))
+            })
+
+    return jsonify(result), 200
