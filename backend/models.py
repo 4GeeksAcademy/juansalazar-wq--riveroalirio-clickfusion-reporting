@@ -5,33 +5,33 @@ import secrets
 db = SQLAlchemy()
 
 class User(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), default='viewer')
-    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=True)
+    role = db.Column(db.String(20), default="viewer")
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Client(db.Model):
-    __tablename__ = 'clients'
+    __tablename__ = "clients"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     location_id = db.Column(db.String(100), nullable=False)
     api_key = db.Column(db.String(255), nullable=False)
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     last_sync = db.Column(db.DateTime)
     investment = db.Column(db.Float, default=0)
     reportei_project_id = db.Column(db.Integer, nullable=True)
     reportei_ga4_id = db.Column(db.Integer, nullable=True)
-    
+
 class PasswordResetToken(db.Model):
-    __tablename__ = 'password_reset_tokens'
+    __tablename__ = "password_reset_tokens"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     token = db.Column(db.String(100), unique=True, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False)
     used = db.Column(db.Boolean, default=False)
@@ -46,10 +46,10 @@ class PasswordResetToken(db.Model):
         )
         db.session.add(reset_token)
         db.session.commit()
-        return reset_token    
+        return reset_token
 
 class Contact(db.Model):
-    __tablename__ = 'contacts'
+    __tablename__ = "contacts"
     id = db.Column(db.String(50), primary_key=True)
     location_id = db.Column(db.String(100), nullable=False)
     contact_name = db.Column(db.String(200))
@@ -66,14 +66,13 @@ class Contact(db.Model):
     attributions = db.Column(db.Text)
     synced_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    class ClientFieldConfig(db.Model):
-    __tablename__ = 'client_field_configs'
+class ClientFieldConfig(db.Model):
+    __tablename__ = "client_field_configs"
     id = db.Column(db.Integer, primary_key=True)
-    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False)
     field_id = db.Column(db.String(100), nullable=False)
     field_label = db.Column(db.String(255), nullable=False)
     visible = db.Column(db.Boolean, default=True)
     position = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    __table_args__ = (db.UniqueConstraint('client_id', 'field_id'),)
+    __table_args__ = (db.UniqueConstraint("client_id", "field_id"),)
