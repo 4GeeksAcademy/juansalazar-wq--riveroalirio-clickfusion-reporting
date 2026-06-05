@@ -1,4 +1,4 @@
-from models import db, User
+from models import db, User, ClientFieldConfig
 from werkzeug.security import generate_password_hash
 from sqlalchemy import text
 

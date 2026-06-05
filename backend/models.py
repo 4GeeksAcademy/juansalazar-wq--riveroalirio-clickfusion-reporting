@@ -65,3 +65,15 @@ class Contact(db.Model):
     custom_fields = db.Column(db.Text)
     attributions = db.Column(db.Text)
     synced_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    class ClientFieldConfig(db.Model):
+    __tablename__ = 'client_field_configs'
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
+    field_id = db.Column(db.String(100), nullable=False)
+    field_label = db.Column(db.String(255), nullable=False)
+    visible = db.Column(db.Boolean, default=True)
+    position = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('client_id', 'field_id'),)
