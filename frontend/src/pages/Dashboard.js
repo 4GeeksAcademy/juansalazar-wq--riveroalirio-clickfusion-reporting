@@ -1,10 +1,12 @@
+cat > /workspaces/juansalazar-wq--riveroalirio-clickfusion-reporting/frontend/src/pages/Dashboard.js << 'ENDOFFILE'
 import { useState, useEffect } from 'react';
 import { getClients, syncContacts } from '../services/api';
 import api from '../services/api';
 import ClientForm from './ClientForm';
 import UserForm from './UserForm';
 import UserList from './UserList';
-import { RefreshCw, Pencil, Trash2, BarChart2, Plus, Users } from 'lucide-react';
+import FieldConfig from './FieldConfig';
+import { RefreshCw, Pencil, Trash2, BarChart2, Plus, Users, Settings } from 'lucide-react';
 
 export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [clients, setClients] = useState([]);
@@ -14,6 +16,7 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [editingClient, setEditingClient] = useState(null);
   const [showUserForm, setShowUserForm] = useState(false);
   const [showUserList, setShowUserList] = useState(false);
+  const [configuringClient, setConfiguringClient] = useState(null);
 
   useEffect(() => {
     loadClients();
@@ -139,6 +142,13 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
                 {user.role === 'admin' && (
                   <>
                     <button
+                      style={{...styles.editBtn, backgroundColor: '#0ea5e9'}}
+                      onClick={() => setConfiguringClient(client.id)}
+                      title="Configurar reporte"
+                    >
+                      <Settings size={15} />
+                    </button>
+                    <button
                       style={styles.editBtn}
                       onClick={() => { setEditingClient(client); setShowForm(true); }}
                       title="Editar"
@@ -184,6 +194,13 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
         />
       )}
 
+      {configuringClient && (
+        <FieldConfig
+          clientId={configuringClient}
+          onClose={() => setConfiguringClient(null)}
+        />
+      )}
+
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
@@ -217,3 +234,4 @@ const styles = {
   editBtn: { padding: '10px 12px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   deleteBtn: { padding: '10px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
 };
+ENDOFFILE
