@@ -227,3 +227,27 @@ def get_custom_fields(client_id):
             continue
     
     return jsonify(fields_summary), 200
+
+    @reports_bp.route('/api/clients/<int:client_id>/custom-fields-labels', methods=['GET'])
+@jwt_required()
+def get_custom_fields_labels(client_id):
+    client = Client.query.get_or_404(client_id)
+    
+    try:
+        import requests as req
+        res = req.get(
+            f'https://services.leadconnectorhq.com/locations/{client.location_id}/customFields',
+            headers={
+                'Authorization': f'Bearer {client.api_key}',
+                'Version': '2021-07-28'
+            },
+            timeout=15
+        )
+        data = res.json()
+        fields = data.get('customFields', [])
+        result = {}
+        for f in fields:
+            result[f['id']] = f['name']
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
