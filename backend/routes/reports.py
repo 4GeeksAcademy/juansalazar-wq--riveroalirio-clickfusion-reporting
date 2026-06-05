@@ -1,4 +1,3 @@
-cat > /workspaces/juansalazar-wq--riveroalirio-clickfusion-reporting/backend/routes/reports.py << 'ENDOFFILE'
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Client, Contact, User
@@ -96,7 +95,6 @@ def sync_contacts(client_id):
 def get_metrics(client_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
-
     client = Client.query.get_or_404(client_id)
 
     if user.role != 'admin' and user.client_id != client.id:
@@ -144,7 +142,6 @@ def get_metrics(client_id):
 def get_investment(client_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
-
     client = Client.query.get_or_404(client_id)
 
     if user.role != 'admin' and user.client_id != client.id:
@@ -180,7 +177,6 @@ def get_investment(client_id):
 def get_ga4(client_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
-
     client = Client.query.get_or_404(client_id)
 
     if user.role != 'admin' and user.client_id != client.id:
@@ -254,4 +250,3 @@ def get_custom_fields_labels(client_id):
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-ENDOFFILE
