@@ -1,3 +1,4 @@
+cat > /workspaces/juansalazar-wq--riveroalirio-clickfusion-reporting/backend/routes/reports.py << 'ENDOFFILE'
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Client, Contact, User
@@ -5,6 +6,7 @@ from services.ghl_service import get_contacts_page
 from services.reportei_service import get_integration_id, get_facebook_metrics, get_ga4_users_over_time
 from datetime import datetime
 import json
+import requests as req
 
 reports_bp = Blueprint('reports', __name__)
 
@@ -21,8 +23,8 @@ def sync_contacts(client_id):
     client = Client.query.get_or_404(client_id)
 
     year = request.args.get('year', datetime.utcnow().year, type=int)
-    date_start = f"{year}-01-01"
-    date_end = f"{year}-12-31"
+    date_start = request.args.get('date_start', f"{year}-01-01")
+    date_end = request.args.get('date_end', f"{year}-12-31")
 
     saved = 0
     updated = 0
@@ -169,7 +171,7 @@ def get_investment(client_id):
         }), 200
 
     except Exception as e:
-        print(f"❌ ERROR Reportei Facebook: {str(e)}")
+        print(f"ERROR Reportei Facebook: {str(e)}")
         return jsonify({"total_spend": 0, "error": str(e)}), 200
 
 
@@ -199,15 +201,16 @@ def get_ga4(client_id):
         return jsonify({"values": values, "source": "reportei"}), 200
 
     except Exception as e:
-        print(f"❌ ERROR Reportei GA4: {str(e)}")
+        print(f"ERROR Reportei GA4: {str(e)}")
         return jsonify({"values": [], "error": str(e)}), 200
+
 
 @reports_bp.route('/api/clients/<int:client_id>/custom-fields', methods=['GET'])
 @jwt_required()
 def get_custom_fields(client_id):
     client = Client.query.get_or_404(client_id)
     contacts = Contact.query.filter_by(location_id=client.location_id).limit(500).all()
-    
+
     fields_summary = {}
     for c in contacts:
         if not c.custom_fields:
@@ -225,16 +228,16 @@ def get_custom_fields(client_id):
                 fields_summary[key][val_str] = fields_summary[key].get(val_str, 0) + 1
         except:
             continue
-    
+
     return jsonify(fields_summary), 200
 
-    @reports_bp.route('/api/clients/<int:client_id>/custom-fields-labels', methods=['GET'])
+
+@reports_bp.route('/api/clients/<int:client_id>/custom-fields-labels', methods=['GET'])
 @jwt_required()
 def get_custom_fields_labels(client_id):
     client = Client.query.get_or_404(client_id)
-    
+
     try:
-        import requests as req
         res = req.get(
             f'https://services.leadconnectorhq.com/locations/{client.location_id}/customFields',
             headers={
@@ -251,3 +254,4 @@ def get_custom_fields_labels(client_id):
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+ENDOFFILE
