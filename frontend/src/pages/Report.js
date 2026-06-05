@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getMetrics, getInvestment, getGA4 } from '../services/api';
+import { getMetrics, getInvestment, getGA4, getFieldData } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
@@ -14,6 +14,7 @@ export default function Report({ client, onBack }) {
   const [endDate, setEndDate] = useState('2026-04-30');
   const [fbMetrics, setFbMetrics] = useState(null);
   const [ga4Data, setGa4Data] = useState([]);
+  const [fieldData, setFieldData] = useState([]);
 
   useEffect(() => {
     loadAll();
@@ -22,14 +23,16 @@ export default function Report({ client, onBack }) {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [metricsRes, investmentRes, ga4Res] = await Promise.all([
+      const [metricsRes, investmentRes, ga4Res, fieldRes] = await Promise.all([
         getMetrics(client.id, startDate, endDate),
         getInvestment(client.id, startDate, endDate),
-        getGA4(client.id, '2025-05-01', endDate)
+        getGA4(client.id, '2025-05-01', endDate),
+        getFieldData(client.id, startDate, endDate)
       ]);
       setMetrics(metricsRes.data);
       setFbMetrics(investmentRes.data);
       setGa4Data(ga4Res.data.values || []);
+      setFieldData(fieldRes.data || []);
     } catch (err) {
       console.error(err);
     }
@@ -56,14 +59,14 @@ export default function Report({ client, onBack }) {
     }));
   };
 
-const getGA4ChartData = () => {
-  if (!ga4Data || !Array.isArray(ga4Data)) return [];
-  const dataArray = ga4Data[0]?.data || [];
-  return dataArray.map((value, index) => ({
-    date: `Día ${index + 1}`,
-    usuarios: parseInt(value) || 0
-  }));
-};
+  const getGA4ChartData = () => {
+    if (!ga4Data || !Array.isArray(ga4Data)) return [];
+    const dataArray = ga4Data[0]?.data || [];
+    return dataArray.map((value, index) => ({
+      date: `Día ${index + 1}`,
+      usuarios: parseInt(value) || 0
+    }));
+  };
 
   const spend = fbMetrics?.total_spend || 0;
   const cpl = metrics?.total_leads > 0 ? spend / metrics.total_leads : 0;
@@ -87,7 +90,6 @@ const getGA4ChartData = () => {
         <p style={styles.loading}>Cargando métricas...</p>
       ) : metrics ? (
         <>
-          {/* Tarjetas GHL */}
           <p style={styles.sectionLabel}>Leads (GHL)</p>
           <div style={styles.statsGrid}>
             <div style={styles.statCard}>
@@ -104,7 +106,6 @@ const getGA4ChartData = () => {
             </div>
           </div>
 
-          {/* Tarjetas Facebook Ads */}
           {fbMetrics && fbMetrics.source === 'reportei' && (
             <>
               <p style={styles.sectionLabel}>Facebook Ads</p>
@@ -133,7 +134,6 @@ const getGA4ChartData = () => {
             </>
           )}
 
-          {/* Gráfica leads por día */}
           <div style={styles.chartCard}>
             <h3 style={styles.chartTitle}>Leads por día (últimos 30 días)</h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -147,7 +147,6 @@ const getGA4ChartData = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* Gráfica fuentes */}
           <div style={styles.chartCard}>
             <h3 style={styles.chartTitle}>Top 8 Fuentes de Leads</h3>
             <ResponsiveContainer width="100%" height={350}>
@@ -163,7 +162,6 @@ const getGA4ChartData = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* Gráfica GA4 */}
           {ga4Data.length > 0 && (
             <div style={styles.chartCard}>
               <h3 style={styles.chartTitle}>Tráfico Landing Page (Google Analytics)</h3>
@@ -177,6 +175,35 @@ const getGA4ChartData = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+          )}
+
+          {fieldData.length > 0 && (
+            <>
+              <p style={styles.sectionLabel}>Datos de encuesta</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+                {fieldData.map((field, i) => (
+                  <div key={i} style={styles.chartCard}>
+                    <h3 style={styles.chartTitle}>{field.field_label}</h3>
+                    {Object.entries(field.values).slice(0, 8).map(([val, count], j) => (
+                      <div key={j} style={{ marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <span style={{ color: '#f8fafc', fontSize: '13px' }}>{val}</span>
+                          <span style={{ color: '#3b82f6', fontSize: '13px', fontWeight: 'bold' }}>{count}</span>
+                        </div>
+                        <div style={{ backgroundColor: '#334155', borderRadius: '4px', height: '6px' }}>
+                          <div style={{
+                            backgroundColor: '#3b82f6',
+                            height: '6px',
+                            borderRadius: '4px',
+                            width: `${(count / Object.values(field.values)[0]) * 100}%`
+                          }}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </>
       ) : <p style={styles.loading}>No hay datos</p>}
