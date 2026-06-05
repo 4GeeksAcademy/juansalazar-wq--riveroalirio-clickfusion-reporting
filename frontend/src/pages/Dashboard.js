@@ -1,4 +1,3 @@
-cat > /workspaces/juansalazar-wq--riveroalirio-clickfusion-reporting/frontend/src/pages/Dashboard.js << 'ENDOFFILE'
 import { useState, useEffect } from 'react';
 import { getClients, syncContacts } from '../services/api';
 import api from '../services/api';
@@ -234,4 +233,3 @@ const styles = {
   editBtn: { padding: '10px 12px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   deleteBtn: { padding: '10px 12px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
 };
-ENDOFFILE
