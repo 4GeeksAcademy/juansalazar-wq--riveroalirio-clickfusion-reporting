@@ -50,3 +50,15 @@ export const resetPassword = (token, password) =>
   api.post('/api/auth/reset-password', { token, password });
 
 export default api;
+
+export const getFieldConfig = (clientId) =>
+  api.get(`/api/clients/${clientId}/field-config`);
+
+export const saveFieldConfig = (clientId, fields) =>
+  api.post(`/api/clients/${clientId}/field-config`, { fields });
+
+export const getFieldLabels = (clientId) =>
+  api.get(`/api/clients/${clientId}/custom-fields-labels`);
+
+export const getFieldData = (clientId, startDate, endDate) =>
+  api.get(`/api/clients/${clientId}/field-data?start_date=${startDate}&end_date=${endDate}`);
