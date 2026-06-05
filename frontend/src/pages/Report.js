@@ -56,13 +56,14 @@ export default function Report({ client, onBack }) {
     }));
   };
 
-  const getGA4ChartData = () => {
-    if (!ga4Data || !Array.isArray(ga4Data)) return [];
-    return ga4Data.map(item => ({
-      date: item.date ? item.date.slice(0, 7) : item[0],
-      usuarios: item.totalUsers || item[1] || 0
-    }));
-  };
+const getGA4ChartData = () => {
+  if (!ga4Data || !Array.isArray(ga4Data)) return [];
+  const dataArray = ga4Data[0]?.data || [];
+  return dataArray.map((value, index) => ({
+    date: `Día ${index + 1}`,
+    usuarios: parseInt(value) || 0
+  }));
+};
 
   const spend = fbMetrics?.total_spend || 0;
   const cpl = metrics?.total_leads > 0 ? spend / metrics.total_leads : 0;
