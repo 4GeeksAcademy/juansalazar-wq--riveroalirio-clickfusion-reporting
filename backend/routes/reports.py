@@ -201,3 +201,29 @@ def get_ga4(client_id):
     except Exception as e:
         print(f"❌ ERROR Reportei GA4: {str(e)}")
         return jsonify({"values": [], "error": str(e)}), 200
+
+@reports_bp.route('/api/clients/<int:client_id>/custom-fields', methods=['GET'])
+@jwt_required()
+def get_custom_fields(client_id):
+    client = Client.query.get_or_404(client_id)
+    contacts = Contact.query.filter_by(location_id=client.location_id).limit(500).all()
+    
+    fields_summary = {}
+    for c in contacts:
+        if not c.custom_fields:
+            continue
+        try:
+            fields = json.loads(c.custom_fields)
+            for f in fields:
+                key = f.get('id') or f.get('key') or f.get('name', 'unknown')
+                value = f.get('value', '')
+                if not value:
+                    continue
+                if key not in fields_summary:
+                    fields_summary[key] = {}
+                val_str = str(value)
+                fields_summary[key][val_str] = fields_summary[key].get(val_str, 0) + 1
+        except:
+            continue
+    
+    return jsonify(fields_summary), 200
