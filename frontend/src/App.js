@@ -1,31 +1,25 @@
 import { useState } from 'react';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Report from './pages/Report';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
-function getInitialPage() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('token')) return 'reset-password';
-  return 'login';
-}
-
 function App() {
+  const [screen, setScreen] = useState('landing');
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
   const [selectedClient, setSelectedClient] = useState(null);
-  const [page, setPage] = useState(getInitialPage);
-
-  const resetToken = new URLSearchParams(window.location.search).get('token');
 
   const handleLogin = (userData) => {
     setUser(userData);
     if (userData.role === 'viewer' && userData.client_id) {
       setSelectedClient({ id: userData.client_id });
     }
+    setScreen('app');
   };
 
   const handleLogout = () => {
@@ -33,18 +27,27 @@ function App() {
     localStorage.removeItem('user');
     setUser(null);
     setSelectedClient(null);
-    setPage('login');
+    setScreen('landing');
   };
 
-  if (!user) {
-    if (page === 'forgot-password') {
-      return <ForgotPassword onBack={() => setPage('login')} />;
+  // Si ya hay sesión activa, ir directo al app
+  if (user && screen === 'landing') {
+    if (user.role === 'viewer' && user.client_id && !selectedClient) {
+      setSelectedClient({ id: user.client_id });
     }
-    if (page === 'reset-password') {
-      return <ResetPassword token={resetToken} onSuccess={() => setPage('login')} />;
-    }
-    return <Login onLogin={handleLogin} onForgotPassword={() => setPage('forgot-password')} />;
+    setScreen('app');
   }
+
+  if (screen === 'landing') return <Landing onEnter={() => setScreen('login')} />;
+  if (screen === 'forgot') return <ForgotPassword onBack={() => setScreen('login')} />;
+  if (screen === 'reset') return <ResetPassword onBack={() => setScreen('login')} />;
+
+  if (screen === 'login' || !user) return (
+    <Login
+      onLogin={handleLogin}
+      onForgotPassword={() => setScreen('forgot')}
+    />
+  );
 
   if (selectedClient) return (
     <Report
