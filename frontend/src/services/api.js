@@ -62,3 +62,6 @@ export const getFieldLabels = (clientId) =>
 
 export const getFieldData = (clientId, startDate, endDate) =>
   api.get(`/api/clients/${clientId}/field-data?start_date=${startDate}&end_date=${endDate}`);
+
+export const getAISummary = (clientId, metrics, fbMetrics, fieldData) =>
+  api.post(`/api/clients/${clientId}/ai-summary`, { metrics, fb_metrics: fbMetrics, field_data: fieldData });

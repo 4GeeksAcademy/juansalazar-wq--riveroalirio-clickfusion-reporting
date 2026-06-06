@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getMetrics, getInvestment, getGA4, getFieldData } from '../services/api';
+import { getMetrics, getInvestment, getGA4, getFieldData, getAISummary } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
@@ -15,6 +15,8 @@ export default function Report({ client, onBack }) {
   const [fbMetrics, setFbMetrics] = useState(null);
   const [ga4Data, setGa4Data] = useState([]);
   const [fieldData, setFieldData] = useState([]);
+  const [aiSummary, setAiSummary] = useState('');
+  const [loadingAI, setLoadingAI] = useState(false);
 
   useEffect(() => {
     loadAll();
@@ -66,6 +68,18 @@ export default function Report({ client, onBack }) {
       date: `Día ${index + 1}`,
       usuarios: parseInt(value) || 0
     }));
+  };
+
+  const handleAISummary = async () => {
+    setLoadingAI(true);
+    setAiSummary('');
+    try {
+      const res = await getAISummary(client.id, metrics, fbMetrics, fieldData);
+      setAiSummary(res.data.summary);
+    } catch (err) {
+      setAiSummary('Error al generar el análisis. Intenta de nuevo.');
+    }
+    setLoadingAI(false);
   };
 
   const spend = fbMetrics?.total_spend || 0;
@@ -205,6 +219,32 @@ export default function Report({ client, onBack }) {
               </div>
             </>
           )}
+
+          {/* Sección IA */}
+          <div style={styles.aiCard}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={styles.aiTitle}>🤖 Análisis con IA</h3>
+                <p style={styles.aiSubtitle}>Genera un resumen ejecutivo con recomendaciones</p>
+              </div>
+              <button
+                style={{ ...styles.aiBtn, opacity: loadingAI ? 0.7 : 1 }}
+                onClick={handleAISummary}
+                disabled={loadingAI}
+              >
+                {loadingAI ? '⏳ Analizando...' : '✨ Analizar'}
+              </button>
+            </div>
+            {aiSummary && (
+              <div style={styles.aiResult}>
+                {aiSummary.split('\n').map((line, i) => (
+                  <p key={i} style={{ margin: '4px 0', color: '#e2e8f0', fontSize: '14px', lineHeight: '1.6' }}>
+                    {line}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       ) : <p style={styles.loading}>No hay datos</p>}
     </div>
@@ -227,4 +267,9 @@ const styles = {
   statValue: { color: '#f8fafc', margin: 0, fontSize: '22px', fontWeight: 'bold', wordBreak: 'break-word', lineHeight: '1.2' },
   chartCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155', marginBottom: '24px' },
   chartTitle: { color: '#f8fafc', margin: '0 0 20px', fontSize: '16px' },
+  aiCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #7c3aed', marginBottom: '24px' },
+  aiTitle: { color: '#f8fafc', margin: '0 0 4px', fontSize: '18px' },
+  aiSubtitle: { color: '#94a3b8', margin: 0, fontSize: '13px' },
+  aiBtn: { padding: '12px 24px', backgroundColor: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: '600', whiteSpace: 'nowrap' },
+  aiResult: { backgroundColor: '#0f172a', borderRadius: '8px', padding: '20px', border: '1px solid #334155' },
 };
