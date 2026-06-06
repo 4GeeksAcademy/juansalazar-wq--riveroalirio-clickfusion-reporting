@@ -19,16 +19,16 @@ export default function Landing({ onEnter }) {
         transition: 'all 0.8s ease'
       }}>
 
-        <div style={styles.badge}>
-          <span style={styles.badgeDot}></span>
-          Sistema de Reportes en Tiempo Real
-        </div>
-
         <img
           src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/qy3OfVBMtn5G20G2QNWp/media/67929297c21e37975bb0e1db.png"
           alt="ClickFusion"
           style={styles.logoImg}
         />
+
+        <div style={styles.badge}>
+          <span style={styles.badgeDot}></span>
+          Sistema de Reportes en Tiempo Real
+        </div>
 
         <p style={styles.tagline}>
           Todos tus datos de marketing<br />en un solo lugar
@@ -111,6 +111,14 @@ const styles = {
     textAlign: 'center',
     padding: '40px 24px',
     maxWidth: '680px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  logoImg: {
+    width: '280px',
+    maxWidth: '75%',
+    marginBottom: '28px',
   },
   badge: {
     display: 'inline-flex',
@@ -122,7 +130,7 @@ const styles = {
     padding: '6px 16px',
     color: '#60a5fa',
     fontSize: '13px',
-    marginBottom: '32px',
+    marginBottom: '28px',
     letterSpacing: '0.3px',
   },
   badgeDot: {
@@ -133,19 +141,13 @@ const styles = {
     display: 'inline-block',
     animation: 'pulse 2s ease-in-out infinite',
   },
-  logoImg: {
-    width: '320px',
-    maxWidth: '80%',
-    marginBottom: '24px',
-    filter: 'brightness(1)',
-  },
   tagline: {
     fontFamily: "'Syne', sans-serif",
-    fontSize: 'clamp(20px, 3vw, 28px)',
-    fontWeight: 400,
-    color: '#94a3b8',
-    margin: '0 0 20px',
-    lineHeight: 1.4,
+    fontSize: 'clamp(22px, 3vw, 32px)',
+    fontWeight: 700,
+    color: '#f8fafc',
+    margin: '0 0 16px',
+    lineHeight: 1.3,
   },
   description: {
     fontSize: '16px',
@@ -157,8 +159,9 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, 1fr)',
     gap: '12px',
+    width: '100%',
     maxWidth: '480px',
-    margin: '0 auto 48px',
+    marginBottom: '48px',
   },
   feature: {
     display: 'flex',
@@ -188,8 +191,7 @@ const styles = {
     cursor: 'pointer',
     transition: 'transform 0.2s ease',
     boxShadow: '0 0 40px rgba(59,130,246,0.4)',
-    display: 'block',
-    margin: '0 auto 32px',
+    marginBottom: '32px',
     fontFamily: "'Syne', sans-serif",
   },
   footer: {
