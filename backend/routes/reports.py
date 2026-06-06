@@ -356,7 +356,9 @@ def get_global_summary():
         "current_month": f"{now.strftime('%B')} {now.year}"
     }), 200
 
-    @reports_bp.route('/api/clients/<int:client_id>/export-csv', methods=['GET'])
+
+
+@reports_bp.route('/api/clients/<int:client_id>/export-csv', methods=['GET'])
 @jwt_required()
 def export_csv(client_id):
     current_user_id = get_jwt_identity()
