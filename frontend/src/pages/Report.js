@@ -17,9 +17,11 @@ export default function Report({ client, onBack }) {
   const [fieldData, setFieldData] = useState([]);
   const [aiSummary, setAiSummary] = useState('');
   const [loadingAI, setLoadingAI] = useState(false);
+  const [currentMonthInvestment, setCurrentMonthInvestment] = useState(null);
 
   useEffect(() => {
     loadAll();
+    loadCurrentMonthInvestment();
   }, [startDate, endDate]);
 
   const loadAll = async () => {
@@ -41,11 +43,23 @@ export default function Report({ client, onBack }) {
     setLoading(false);
   };
 
-const getDailyData = () => {
-  if (!metrics) return [];
-  return Object.entries(metrics.leads_by_day)
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([date, count]) => ({ date: date.slice(5), leads: count }));
+  const loadCurrentMonthInvestment = async () => {
+    const now = new Date();
+    const firstDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+    const lastDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
+    try {
+      const res = await getInvestment(client.id, firstDay, lastDay);
+      setCurrentMonthInvestment(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const getDailyData = () => {
+    if (!metrics) return [];
+    return Object.entries(metrics.leads_by_day)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, count]) => ({ date: date.slice(5), leads: count }));
   };
 
   const getSourceData = () => {
@@ -61,15 +75,15 @@ const getDailyData = () => {
     }));
   };
 
-const getGA4ChartData = () => {
-  if (!ga4Data || !Array.isArray(ga4Data)) return [];
-  const dataArray = ga4Data[0]?.data || [];
-  const start = new Date(startDate);
-  return dataArray.map((value, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    const label = `${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-    return { date: label, usuarios: parseInt(value) || 0 };
+  const getGA4ChartData = () => {
+    if (!ga4Data || !Array.isArray(ga4Data)) return [];
+    const dataArray = ga4Data[0]?.data || [];
+    const start = new Date(startDate);
+    return dataArray.map((value, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      const label = `${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+      return { date: label, usuarios: parseInt(value) || 0 };
     });
   };
 
@@ -87,6 +101,8 @@ const getGA4ChartData = () => {
 
   const spend = fbMetrics?.total_spend || 0;
   const cpl = metrics?.total_leads > 0 ? spend / metrics.total_leads : 0;
+  const currentMonthName = new Date().toLocaleString('es-CO', { month: 'long' });
+  const currentYear = new Date().getFullYear();
 
   return (
     <div style={styles.container}>
@@ -147,12 +163,18 @@ const getGA4ChartData = () => {
                   <p style={styles.statLabel}>Clics</p>
                   <p style={styles.statValue}>{fmt(fbMetrics.clicks)}</p>
                 </div>
+                {currentMonthInvestment && currentMonthInvestment.source === 'reportei' && (
+                  <div style={{...styles.statCard, border: '1px solid #7c3aed'}}>
+                    <p style={styles.statLabel}>Inversión {currentMonthName} {currentYear}</p>
+                    <p style={{...styles.statValue, color: '#a78bfa'}}>{fmtCOP(currentMonthInvestment.total_spend)}</p>
+                  </div>
+                )}
               </div>
             </>
           )}
 
           <div style={styles.chartCard}>
-            <h3 style={styles.chartTitle}>Leads por día (últimos 30 días)</h3>
+            <h3 style={styles.chartTitle}>Leads por día</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={getDailyData()}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -223,7 +245,6 @@ const getGA4ChartData = () => {
             </>
           )}
 
-          {/* Sección IA */}
           <div style={styles.aiCard}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
