@@ -104,13 +104,6 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
                 }
               </p>
 
-              <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
-                Inversión: {
-                  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' })
-                    .format(client.investment || 0)
-                }
-              </p>
-
               <p style={styles.clientId}>ID: {client.location_id}</p>
 
               <div style={styles.badge}>
