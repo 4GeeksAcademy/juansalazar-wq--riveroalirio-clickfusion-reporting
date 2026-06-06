@@ -11,8 +11,11 @@ const fmtCOP = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', curren
 export default function Report({ client, onBack }) {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [startDate, setStartDate] = useState('2026-01-01');
-  const [endDate, setEndDate] = useState('2026-04-30');
+  const today = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+  const [startDate, setStartDate] = useState(thirtyDaysAgo.toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(today.toISOString().split('T')[0]);
   const [fbMetrics, setFbMetrics] = useState(null);
   const [ga4Data, setGa4Data] = useState([]);
   const [fieldData, setFieldData] = useState([]);
