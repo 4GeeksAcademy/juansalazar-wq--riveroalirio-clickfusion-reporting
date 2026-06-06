@@ -41,11 +41,11 @@ export default function Report({ client, onBack }) {
     setLoading(false);
   };
 
-  const getDailyData = () => {
-    if (!metrics) return [];
-    return Object.entries(metrics.leads_by_day)
-      .map(([date, count]) => ({ date: date.slice(5), leads: count }))
-      .slice(-30);
+const getDailyData = () => {
+  if (!metrics) return [];
+  return Object.entries(metrics.leads_by_day)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, count]) => ({ date: date.slice(5), leads: count }));
   };
 
   const getSourceData = () => {
