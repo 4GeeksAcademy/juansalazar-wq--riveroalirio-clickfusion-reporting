@@ -322,7 +322,9 @@ Da el análisis en formato claro con emojis, destacando el rendimiento del mes e
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-        @reports_bp.route('/api/summary', methods=['GET'])
+
+
+@reports_bp.route('/api/summary', methods=['GET'])
 @jwt_required()
 def get_global_summary():
     current_user_id = get_jwt_identity()
