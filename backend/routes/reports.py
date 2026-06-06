@@ -6,6 +6,7 @@ from services.reportei_service import get_integration_id, get_facebook_metrics, 
 from datetime import datetime
 import json
 import requests as req
+import os
 
 reports_bp = Blueprint('reports', __name__)
 
@@ -259,3 +260,56 @@ def get_field_data(client_id):
         if value_count:
             result.append({"field_id": config.field_id, "field_label": config.field_label, "values": dict(sorted(value_count.items(), key=lambda x: x[1], reverse=True))})
     return jsonify(result), 200
+
+@reports_bp.route('/api/clients/<int:client_id>/ai-summary', methods=['POST'])
+@jwt_required()
+def ai_summary(client_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    client = Client.query.get_or_404(client_id)
+
+    if user.role != 'admin' and user.client_id != client.id:
+        return jsonify({"error": "No autorizado"}), 403
+
+    data = request.get_json()
+    metrics = data.get('metrics', {})
+    fb_metrics = data.get('fb_metrics', {})
+    field_data = data.get('field_data', [])
+
+    prompt = f"""Eres un experto en marketing digital y bienes raíces. Analiza estos datos del proyecto {client.name} y da un resumen ejecutivo en español de máximo 200 palabras con los insights más importantes y 3 recomendaciones concretas.
+
+DATOS DE LEADS (GHL):
+- Total leads: {metrics.get('total_leads', 0)}
+- Top fuentes: {list(metrics.get('leads_by_source', {}).items())[:5]}
+
+FACEBOOK ADS:
+- Inversión total: ${fb_metrics.get('total_spend', 0):,.0f} COP
+- Alcance: {fb_metrics.get('reach', 0):,.0f}
+- Clicks: {fb_metrics.get('clicks', 0):,.0f}
+- CPL: ${metrics.get('total_leads', 1) and fb_metrics.get('total_spend', 0) / metrics.get('total_leads', 1):,.0f} COP
+
+DATOS DE ENCUESTA:
+{chr(10).join([f"- {f['field_label']}: {list(f['values'].items())[:3]}" for f in field_data[:4]])}
+
+Da el análisis en formato claro con emojis, highlighting los puntos más importantes."""
+
+    try:
+        response = req.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {os.getenv("OPENROUTER_API_KEY")}',
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://clickfusion-reporting.netlify.app',
+            },
+            json={
+                'model': 'meta-llama/llama-3.1-8b-instruct:free',
+                'messages': [{'role': 'user', 'content': prompt}],
+                'max_tokens': 500
+            },
+            timeout=30
+        )
+        result = response.json()
+        summary = result['choices'][0]['message']['content']
+        return jsonify({'summary': summary}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
