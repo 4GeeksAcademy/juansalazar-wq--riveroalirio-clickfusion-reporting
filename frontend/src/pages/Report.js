@@ -96,7 +96,7 @@ export default function Report({ client, onBack }) {
     setLoadingAI(true);
     setAiSummary('');
     try {
-      const res = await getAISummary(client.id, metrics, fbMetrics, fieldData);
+      const res = await getAISummary(client.id, metrics, fbMetrics, fieldData, { total_leads: currentMonthLeads?.total_leads || 0, total_spend: currentMonthInvestment?.total_spend || 0 });
       setAiSummary(res.data.summary);
     } catch (err) {
       setAiSummary('Error al generar el análisis. Intenta de nuevo.');
