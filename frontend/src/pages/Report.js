@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getMetrics, getInvestment, getGA4, getFieldData, getAISummary, exportCSV } from '../services/api';
-import { Sparkles, Bot, Loader, Download, Printer } from 'lucide-react';
+import { Sparkles, Bot, Loader, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
@@ -126,14 +126,6 @@ export default function Report({ client, onBack }) {
 
   return (
     <div style={styles.container}>
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { background: #0f172a !important; }
-          @page { margin: 20px; }
-        }
-      `}</style>
-
       <div style={styles.header}>
         {onBack && (
           <button style={styles.backBtn} onClick={onBack}>← Volver</button>
@@ -148,7 +140,7 @@ export default function Report({ client, onBack }) {
         <button style={{...styles.filterBtn, backgroundColor: '#10b981', display: 'inline-flex', alignItems: 'center', gap: '6px'}} onClick={handleExportCSV}>
           <Download size={16} /> Exportar CSV
         </button>
-        
+      </div>
 
       {loading ? (
         <p style={styles.loading}>Cargando métricas...</p>
@@ -289,12 +281,11 @@ export default function Report({ client, onBack }) {
                 <p style={styles.aiSubtitle}>Genera un resumen ejecutivo con recomendaciones</p>
               </div>
               <button
-               
                 style={{ ...styles.aiBtn, opacity: loadingAI ? 0.7 : 1 }}
                 onClick={handleAISummary}
                 disabled={loadingAI}
               >
-                {loadingAI ? <><Loader size={16} style={{marginRight:'6px', animation:'spin 1s linear infinite'}}/>Analizando...</> : <><Sparkles size={16} style={{marginRight:'6px'}}/>Analizar</>}
+                {loadingAI ? <><Loader size={16} style={{marginRight:'6px'}}/>Analizando...</> : <><Sparkles size={16} style={{marginRight:'6px'}}/>Analizar</>}
               </button>
             </div>
             {aiSummary && (
