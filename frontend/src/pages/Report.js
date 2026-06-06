@@ -148,10 +148,7 @@ export default function Report({ client, onBack }) {
         <button style={{...styles.filterBtn, backgroundColor: '#10b981', display: 'inline-flex', alignItems: 'center', gap: '6px'}} onClick={handleExportCSV}>
           <Download size={16} /> Exportar CSV
         </button>
-        <button style={{...styles.filterBtn, backgroundColor: '#f59e0b', display: 'inline-flex', alignItems: 'center', gap: '6px'}} onClick={() => window.print()}>
-          <Printer size={16} /> Imprimir PDF
-        </button>
-      </div>
+        
 
       {loading ? (
         <p style={styles.loading}>Cargando métricas...</p>
