@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { getClients, syncContacts } from '../services/api';
+import { getClients, syncContacts, getGlobalSummary } from '../services/api';
 import api from '../services/api';
 import ClientForm from './ClientForm';
 import UserForm from './UserForm';
 import UserList from './UserList';
 import FieldConfig from './FieldConfig';
-import { RefreshCw, Pencil, Trash2, BarChart2, Plus, Users, Settings } from 'lucide-react';
+import { RefreshCw, Pencil, Trash2, BarChart2, Plus, Users, Settings, TrendingUp, DollarSign } from 'lucide-react';
 
 export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [clients, setClients] = useState([]);
@@ -16,9 +16,11 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
   const [showUserForm, setShowUserForm] = useState(false);
   const [showUserList, setShowUserList] = useState(false);
   const [configuringClient, setConfiguringClient] = useState(null);
+  const [summary, setSummary] = useState(null);
 
   useEffect(() => {
     loadClients();
+    if (user.role === 'admin') loadSummary();
   }, []);
 
   const loadClients = async () => {
@@ -30,6 +32,15 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
       console.error(err);
     }
     setLoading(false);
+  };
+
+  const loadSummary = async () => {
+    try {
+      const res = await getGlobalSummary();
+      setSummary(res.data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSync = async (clientId) => {
@@ -60,6 +71,10 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
     loadClients();
   };
 
+  const fmt = (n) => new Intl.NumberFormat('es-CO').format(Math.round(n || 0));
+  const currentMonthName = new Date().toLocaleString('es-CO', { month: 'long' });
+  const currentYear = new Date().getFullYear();
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -69,6 +84,39 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
           <button style={styles.logoutBtn} onClick={onLogout}>Salir</button>
         </div>
       </div>
+
+      {/* Resumen Ejecutivo */}
+      {user.role === 'admin' && summary && (
+        <div style={styles.summarySection}>
+          <p style={styles.summaryLabel}>Resumen Ejecutivo — Ja Marketing</p>
+          <div style={styles.summaryGrid}>
+            <div style={styles.summaryCard}>
+              <div style={styles.summaryIcon}><BarChart2 size={20} color="#3b82f6" /></div>
+              <div>
+                <p style={styles.summaryCardLabel}>Total Leads</p>
+                <p style={styles.summaryCardValue}>{fmt(summary.total_leads)}</p>
+                <p style={styles.summaryCardSub}>Todos los proyectos</p>
+              </div>
+            </div>
+            <div style={{...styles.summaryCard, borderColor: '#10b981'}}>
+              <div style={{...styles.summaryIcon, backgroundColor: 'rgba(16,185,129,0.1)'}}><TrendingUp size={20} color="#10b981" /></div>
+              <div>
+                <p style={styles.summaryCardLabel}>Leads {currentMonthName}</p>
+                <p style={{...styles.summaryCardValue, color: '#34d399'}}>{fmt(summary.current_month_leads)}</p>
+                <p style={styles.summaryCardSub}>Mes en curso</p>
+              </div>
+            </div>
+            <div style={{...styles.summaryCard, borderColor: '#7c3aed'}}>
+              <div style={{...styles.summaryIcon, backgroundColor: 'rgba(124,58,237,0.1)'}}><Users size={20} color="#7c3aed" /></div>
+              <div>
+                <p style={styles.summaryCardLabel}>Proyectos Activos</p>
+                <p style={{...styles.summaryCardValue, color: '#a78bfa'}}>{summary.total_clients}</p>
+                <p style={styles.summaryCardSub}>Clientes en plataforma</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={styles.sectionHeader}>
         <h2 style={styles.sectionTitle}>Mis Clientes</h2>
@@ -91,7 +139,6 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
           {clients.map(client => (
             <div key={client.id} style={styles.card}>
               <h3 style={styles.clientName}>{client.name}</h3>
-
               <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
                 Última actualización: {
                   client.last_sync
@@ -103,9 +150,7 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
                     : 'Sin sincronizar'
                 }
               </p>
-
               <p style={styles.clientId}>ID: {client.location_id}</p>
-
               <div style={styles.badge}>
                 <span style={{
                   display: 'inline-block',
@@ -116,7 +161,6 @@ export default function Dashboard({ user, onLogout, onSelectClient }) {
                 }}></span>
                 {client.active ? 'Activo' : 'Inactivo'}
               </div>
-
               <div style={styles.actions}>
                 <button style={styles.reportBtn} onClick={() => onSelectClient(client)}>
                   <BarChart2 size={15} style={{marginRight:'5px'}} /> Ver Reporte
@@ -211,6 +255,14 @@ const styles = {
   userInfo: { display: 'flex', alignItems: 'center', gap: '16px' },
   userName: { color: '#94a3b8' },
   logoutBtn: { padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
+  summarySection: { marginBottom: '32px' },
+  summaryLabel: { color: '#64748b', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' },
+  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' },
+  summaryCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', border: '1px solid #3b82f6', display: 'flex', alignItems: 'center', gap: '16px' },
+  summaryIcon: { backgroundColor: 'rgba(59,130,246,0.1)', borderRadius: '10px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  summaryCardLabel: { color: '#64748b', fontSize: '12px', margin: '0 0 4px' },
+  summaryCardValue: { color: '#f8fafc', fontSize: '28px', fontWeight: 'bold', margin: '0 0 2px', lineHeight: 1 },
+  summaryCardSub: { color: '#475569', fontSize: '11px', margin: 0 },
   sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   sectionTitle: { color: '#f8fafc', margin: 0 },
   addBtn: { padding: '10px 20px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', display: 'inline-flex', alignItems: 'center' },

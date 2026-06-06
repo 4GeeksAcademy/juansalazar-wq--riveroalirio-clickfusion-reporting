@@ -65,3 +65,6 @@ export const getFieldData = (clientId, startDate, endDate) =>
 
 export const getAISummary = (clientId, metrics, fbMetrics, fieldData, currentMonth = {}) =>
   api.post(`/api/clients/${clientId}/ai-summary`, { metrics, fb_metrics: fbMetrics, field_data: fieldData, current_month: currentMonth });
+
+export const getGlobalSummary = () =>
+  api.get('/api/summary');
