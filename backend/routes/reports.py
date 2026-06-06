@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Client, Contact, User, ClientFieldConfig
 from services.ghl_service import get_contacts_page
 from services.reportei_service import get_integration_id, get_facebook_metrics, get_ga4_users_over_time
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import requests as req
 import os
@@ -321,3 +321,35 @@ Da el análisis en formato claro con emojis, destacando el rendimiento del mes e
         return jsonify({'summary': summary}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+        @reports_bp.route('/api/summary', methods=['GET'])
+@jwt_required()
+def get_global_summary():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if user.role != 'admin':
+        return jsonify({"error": "No autorizado"}), 403
+
+    clients = Client.query.filter_by(active=True).all()
+
+    now = datetime.utcnow()
+    first_day = f"{now.year}-{str(now.month).zfill(2)}-01"
+    last_day = f"{now.year}-{str(now.month).zfill(2)}-{str((datetime(now.year, now.month % 12 + 1, 1) - timedelta(days=1)).day).zfill(2)}"
+
+    total_leads = 0
+    current_month_leads = 0
+
+    for client in clients:
+        contacts_total = Contact.query.filter_by(location_id=client.location_id).count()
+        contacts_month = Contact.query.filter_by(location_id=client.location_id).filter(
+            Contact.date_added >= datetime.fromisoformat(first_day)
+        ).count()
+        total_leads += contacts_total
+        current_month_leads += contacts_month
+
+    return jsonify({
+        "total_leads": total_leads,
+        "current_month_leads": current_month_leads,
+        "total_clients": len(clients),
+        "current_month": f"{now.strftime('%B')} {now.year}"
+    }), 200
