@@ -355,3 +355,44 @@ def get_global_summary():
         "total_clients": len(clients),
         "current_month": f"{now.strftime('%B')} {now.year}"
     }), 200
+
+    @reports_bp.route('/api/clients/<int:client_id>/export-csv', methods=['GET'])
+@jwt_required()
+def export_csv(client_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    client = Client.query.get_or_404(client_id)
+
+    if user.role != 'admin' and user.client_id != client.id:
+        return jsonify({"error": "No autorizado"}), 403
+
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    query = Contact.query.filter_by(location_id=client.location_id)
+    if start_date:
+        query = query.filter(Contact.date_added >= datetime.fromisoformat(start_date))
+    if end_date:
+        query = query.filter(Contact.date_added <= datetime.fromisoformat(end_date))
+
+    contacts = query.order_by(Contact.date_added.desc()).all()
+
+    rows = ['Fecha,Nombre,Email,Telefono,Fuente,Tags']
+    for c in contacts:
+        tags = ', '.join(json.loads(c.tags)) if c.tags else ''
+        date = c.date_added.strftime('%Y-%m-%d') if c.date_added else ''
+        name = (c.contact_name or '').replace(',', ' ')
+        email = (c.email or '').replace(',', ' ')
+        phone = (c.phone or '').replace(',', ' ')
+        source = (c.source or '').replace(',', ' ')
+        tags = tags.replace(',', ';')
+        rows.append(f'{date},{name},{email},{phone},{source},{tags}')
+
+    csv_content = '\n'.join(rows)
+
+    from flask import Response
+    return Response(
+        csv_content,
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment;filename=leads_{client.name}_{start_date}_{end_date}.csv'}
+    )
