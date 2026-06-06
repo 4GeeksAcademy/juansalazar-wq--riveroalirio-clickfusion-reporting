@@ -195,7 +195,7 @@ export default function Report({ client, onBack }) {
                             backgroundColor: '#3b82f6',
                             height: '6px',
                             borderRadius: '4px',
-                            width: `${(count / Object.values(field.values)[0]) * 100}%`
+                            width: `${Math.min((count / Object.values(field.values)[0]) * 100, 100)}%`
                           }}></div>
                         </div>
                       </div>
