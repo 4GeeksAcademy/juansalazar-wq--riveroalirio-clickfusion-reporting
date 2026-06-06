@@ -28,7 +28,7 @@ export default function Report({ client, onBack }) {
       const [metricsRes, investmentRes, ga4Res, fieldRes] = await Promise.all([
         getMetrics(client.id, startDate, endDate),
         getInvestment(client.id, startDate, endDate),
-        getGA4(client.id, '2025-05-01', endDate),
+        getGA4(client.id, startDate, endDate),
         getFieldData(client.id, startDate, endDate)
       ]);
       setMetrics(metricsRes.data);
