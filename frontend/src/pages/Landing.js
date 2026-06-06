@@ -24,9 +24,11 @@ export default function Landing({ onEnter }) {
           Sistema de Reportes en Tiempo Real
         </div>
 
-        <h1 style={styles.logo}>
-          Click<span style={styles.logoAccent}>Fusion</span>
-        </h1>
+        <img
+          src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/qy3OfVBMtn5G20G2QNWp/media/67929297c21e37975bb0e1db.png"
+          alt="ClickFusion"
+          style={styles.logoImg}
+        />
 
         <p style={styles.tagline}>
           Todos tus datos de marketing<br />en un solo lugar
@@ -88,7 +90,7 @@ const styles = {
   grid: {
     position: 'absolute',
     inset: 0,
-    backgroundImage: `linear-gradient(rgba(59,130,246,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.08) 1px, transparent 1px)`,
+    backgroundImage: 'linear-gradient(rgba(59,130,246,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.08) 1px, transparent 1px)',
     backgroundSize: '60px 60px',
     animation: 'gridMove 8s linear infinite alternate',
   },
@@ -131,17 +133,11 @@ const styles = {
     display: 'inline-block',
     animation: 'pulse 2s ease-in-out infinite',
   },
-  logo: {
-    fontFamily: "'Syne', sans-serif",
-    fontSize: 'clamp(52px, 8vw, 88px)',
-    fontWeight: 800,
-    color: '#f8fafc',
-    margin: '0 0 16px',
-    letterSpacing: '-2px',
-    lineHeight: 1,
-  },
-  logoAccent: {
-    color: '#3b82f6',
+  logoImg: {
+    width: '320px',
+    maxWidth: '80%',
+    marginBottom: '24px',
+    filter: 'brightness(1)',
   },
   tagline: {
     fontFamily: "'Syne', sans-serif",
