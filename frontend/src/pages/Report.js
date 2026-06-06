@@ -61,13 +61,16 @@ export default function Report({ client, onBack }) {
     }));
   };
 
-  const getGA4ChartData = () => {
-    if (!ga4Data || !Array.isArray(ga4Data)) return [];
-    const dataArray = ga4Data[0]?.data || [];
-    return dataArray.map((value, index) => ({
-      date: `Día ${index + 1}`,
-      usuarios: parseInt(value) || 0
-    }));
+const getGA4ChartData = () => {
+  if (!ga4Data || !Array.isArray(ga4Data)) return [];
+  const dataArray = ga4Data[0]?.data || [];
+  const start = new Date(startDate);
+  return dataArray.map((value, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const label = `${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    return { date: label, usuarios: parseInt(value) || 0 };
+    });
   };
 
   const handleAISummary = async () => {
