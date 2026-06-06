@@ -302,7 +302,7 @@ Da el análisis en formato claro con emojis, highlighting los puntos más import
                 'HTTP-Referer': 'https://clickfusion-reporting.netlify.app',
             },
             json={
-                'model': 'google/gemma-3-12b-it:free',
+                'model': 'google/gemma-4-31b-it:free',
                 'messages': [{'role': 'user', 'content': prompt}],
                 'max_tokens': 500
             },
