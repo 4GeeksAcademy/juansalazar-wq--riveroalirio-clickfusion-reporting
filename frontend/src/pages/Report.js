@@ -18,10 +18,11 @@ export default function Report({ client, onBack }) {
   const [aiSummary, setAiSummary] = useState('');
   const [loadingAI, setLoadingAI] = useState(false);
   const [currentMonthInvestment, setCurrentMonthInvestment] = useState(null);
+  const [currentMonthLeads, setCurrentMonthLeads] = useState(null);
 
   useEffect(() => {
     loadAll();
-    loadCurrentMonthInvestment();
+    loadCurrentMonth();
   }, [startDate, endDate]);
 
   const loadAll = async () => {
@@ -43,13 +44,17 @@ export default function Report({ client, onBack }) {
     setLoading(false);
   };
 
-  const loadCurrentMonthInvestment = async () => {
+  const loadCurrentMonth = async () => {
     const now = new Date();
     const firstDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
     const lastDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
     try {
-      const res = await getInvestment(client.id, firstDay, lastDay);
-      setCurrentMonthInvestment(res.data);
+      const [investRes, metricsRes] = await Promise.all([
+        getInvestment(client.id, firstDay, lastDay),
+        getMetrics(client.id, firstDay, lastDay)
+      ]);
+      setCurrentMonthInvestment(investRes.data);
+      setCurrentMonthLeads(metricsRes.data);
     } catch (err) {
       console.error(err);
     }
@@ -137,6 +142,12 @@ export default function Report({ client, onBack }) {
               <p style={styles.statLabel}>Etiquetas</p>
               <p style={styles.statValue}>{Object.keys(metrics.leads_by_tag).length}</p>
             </div>
+            {currentMonthLeads && (
+              <div style={{...styles.statCard, border: '1px solid #10b981'}}>
+                <p style={styles.statLabel}>Leads {currentMonthName} {currentYear}</p>
+                <p style={{...styles.statValue, color: '#34d399'}}>{fmt(currentMonthLeads.total_leads)}</p>
+              </div>
+            )}
           </div>
 
           {fbMetrics && fbMetrics.source === 'reportei' && (
