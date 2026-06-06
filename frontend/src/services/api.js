@@ -68,3 +68,17 @@ export const getAISummary = (clientId, metrics, fbMetrics, fieldData, currentMon
 
 export const getGlobalSummary = () =>
   api.get('/api/summary');
+
+export const exportCSV = async (clientId, startDate, endDate, clientName) => {
+  const res = await api.get(`/api/clients/${clientId}/export-csv?start_date=${startDate}&end_date=${endDate}`, {
+    responseType: 'blob'
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `leads_${clientName}_${startDate}_${endDate}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};

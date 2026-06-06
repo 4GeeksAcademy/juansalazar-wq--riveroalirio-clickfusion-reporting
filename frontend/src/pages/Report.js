@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getMetrics, getInvestment, getGA4, getFieldData, getAISummary } from '../services/api';
-import { Sparkles, Bot, Loader } from 'lucide-react';
+import { getMetrics, getInvestment, getGA4, getFieldData, getAISummary, exportCSV } from '../services/api';
+import { Sparkles, Bot, Loader, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
@@ -97,12 +97,23 @@ export default function Report({ client, onBack }) {
     setLoadingAI(true);
     setAiSummary('');
     try {
-      const res = await getAISummary(client.id, metrics, fbMetrics, fieldData, { total_leads: currentMonthLeads?.total_leads || 0, total_spend: currentMonthInvestment?.total_spend || 0 });
+      const res = await getAISummary(client.id, metrics, fbMetrics, fieldData, {
+        total_leads: currentMonthLeads?.total_leads || 0,
+        total_spend: currentMonthInvestment?.total_spend || 0
+      });
       setAiSummary(res.data.summary);
     } catch (err) {
       setAiSummary('Error al generar el análisis. Intenta de nuevo.');
     }
     setLoadingAI(false);
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      await exportCSV(client.id, startDate, endDate, client.name);
+    } catch (err) {
+      alert('Error al exportar CSV');
+    }
   };
 
   const spend = fbMetrics?.total_spend || 0;
@@ -123,6 +134,9 @@ export default function Report({ client, onBack }) {
         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={styles.dateInput} />
         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={styles.dateInput} />
         <button style={styles.filterBtn} onClick={loadAll}>Filtrar</button>
+        <button style={{...styles.filterBtn, backgroundColor: '#10b981', display: 'inline-flex', alignItems: 'center', gap: '6px'}} onClick={handleExportCSV}>
+          <Download size={16} /> Exportar CSV
+        </button>
       </div>
 
       {loading ? (
@@ -292,7 +306,7 @@ const styles = {
   header: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' },
   backBtn: { padding: '8px 16px', backgroundColor: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   title: { color: '#f8fafc', margin: 0, fontSize: '22px' },
-  filters: { display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' },
+  filters: { display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center', flexWrap: 'wrap' },
   dateInput: { padding: '10px', borderRadius: '6px', border: '1px solid #334155', backgroundColor: '#1e293b', color: '#f8fafc' },
   filterBtn: { padding: '10px 20px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' },
   loading: { color: '#94a3b8' },
@@ -304,8 +318,8 @@ const styles = {
   chartCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155', marginBottom: '24px' },
   chartTitle: { color: '#f8fafc', margin: '0 0 20px', fontSize: '16px' },
   aiCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #7c3aed', marginBottom: '24px' },
-  aiTitle: { color: '#f8fafc', margin: '0 0 4px', fontSize: '18px' },
+  aiTitle: { color: '#f8fafc', margin: '0 0 4px', fontSize: '18px', display: 'flex', alignItems: 'center' },
   aiSubtitle: { color: '#94a3b8', margin: 0, fontSize: '13px' },
-  aiBtn: { padding: '12px 24px', backgroundColor: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: '600', whiteSpace: 'nowrap' },
+  aiBtn: { padding: '12px 24px', backgroundColor: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: '600', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center' },
   aiResult: { backgroundColor: '#0f172a', borderRadius: '8px', padding: '20px', border: '1px solid #334155' },
 };
