@@ -136,12 +136,12 @@ export default function Report({ client, onBack }) {
 
       <div style={styles.header}>
         {onBack && (
-          <button className="no-print" style={styles.backBtn} onClick={onBack}>← Volver</button>
+          <button style={styles.backBtn} onClick={onBack}>← Volver</button>
         )}
         <h1 style={styles.title}>{client.name}</h1>
       </div>
 
-      <div className="no-print" style={styles.filters}>
+      <div style={styles.filters}>
         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={styles.dateInput} />
         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={styles.dateInput} />
         <button style={styles.filterBtn} onClick={loadAll}>Filtrar</button>
@@ -289,7 +289,7 @@ export default function Report({ client, onBack }) {
                 <p style={styles.aiSubtitle}>Genera un resumen ejecutivo con recomendaciones</p>
               </div>
               <button
-                className="no-print"
+               
                 style={{ ...styles.aiBtn, opacity: loadingAI ? 0.7 : 1 }}
                 onClick={handleAISummary}
                 disabled={loadingAI}
