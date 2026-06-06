@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getMetrics, getInvestment, getGA4, getFieldData, getAISummary } from '../services/api';
+import { Sparkles, Bot, Loader } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f43f5e', '#84cc16'];
@@ -259,7 +260,7 @@ export default function Report({ client, onBack }) {
           <div style={styles.aiCard}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
-                <h3 style={styles.aiTitle}>🤖 Análisis con IA</h3>
+                <h3 style={styles.aiTitle}><Bot size={20} style={{marginRight:'8px', verticalAlign:'middle'}}/>Análisis con IA</h3>
                 <p style={styles.aiSubtitle}>Genera un resumen ejecutivo con recomendaciones</p>
               </div>
               <button
@@ -267,7 +268,7 @@ export default function Report({ client, onBack }) {
                 onClick={handleAISummary}
                 disabled={loadingAI}
               >
-                {loadingAI ? '⏳ Analizando...' : '✨ Analizar'}
+                {loadingAI ? <><Loader size={16} style={{marginRight:'6px', animation:'spin 1s linear infinite'}}/>Analizando...</> : <><Sparkles size={16} style={{marginRight:'6px'}}/>Analizar</>}
               </button>
             </div>
             {aiSummary && (
