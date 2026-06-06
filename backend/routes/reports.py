@@ -276,22 +276,30 @@ def ai_summary(client_id):
     fb_metrics = data.get('fb_metrics', {})
     field_data = data.get('field_data', [])
 
+    current_month_data = data.get('current_month', {})
+    current_month_leads = current_month_data.get('total_leads', 0)
+    current_month_spend = current_month_data.get('total_spend', 0)
+
     prompt = f"""Eres un experto en marketing digital y bienes raíces. Analiza estos datos del proyecto {client.name} y da un resumen ejecutivo en español de máximo 200 palabras con los insights más importantes y 3 recomendaciones concretas.
 
-DATOS DE LEADS (GHL):
+DATOS DE LEADS (GHL) - PERÍODO FILTRADO:
 - Total leads: {metrics.get('total_leads', 0)}
 - Top fuentes: {list(metrics.get('leads_by_source', {}).items())[:5]}
 
+MES EN CURSO:
+- Leads este mes: {current_month_leads}
+- Inversión este mes: ${current_month_spend:,.0f} COP
+
 FACEBOOK ADS:
-- Inversión total: ${fb_metrics.get('total_spend', 0):,.0f} COP
+- Inversión total período: ${fb_metrics.get('total_spend', 0):,.0f} COP
 - Alcance: {fb_metrics.get('reach', 0):,.0f}
 - Clicks: {fb_metrics.get('clicks', 0):,.0f}
-- CPL: ${metrics.get('total_leads', 1) and fb_metrics.get('total_spend', 0) / metrics.get('total_leads', 1):,.0f} COP
+- CPL: ${fb_metrics.get('total_spend', 0) / max(metrics.get('total_leads', 1), 1):,.0f} COP
 
 DATOS DE ENCUESTA:
 {chr(10).join([f"- {f['field_label']}: {list(f['values'].items())[:3]}" for f in field_data[:4]])}
 
-Da el análisis en formato claro con emojis, highlighting los puntos más importantes."""
+Da el análisis en formato claro con emojis, destacando el rendimiento del mes en curso vs el período total."""
 
     try:
         response = req.post(
